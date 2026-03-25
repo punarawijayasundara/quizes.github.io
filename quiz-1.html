@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BSc Nursing - Microbiology Interactive Quiz</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --light: #f4f7f6;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light);
+            color: var(--primary);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1 { text-align: center; color: var(--primary); border-bottom: 2px solid var(--secondary); padding-bottom: 10px; }
+        #timer {
+            position: sticky;
+            top: 10px;
+            background: var(--primary);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            z-index: 100;
+            display: none;
+        }
+        .quiz-intro { text-align: center; padding: 50px 0; }
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: 0.3s;
+            margin: 10px;
+        }
+        .btn-start { background: var(--success); color: white; }
+        .btn-check { background: var(--secondary); color: white; }
+        .btn-submit { background: var(--primary); color: white; }
+        
+        .question-block {
+            margin-bottom: 25px;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .question-text { font-weight: 600; margin-bottom: 12px; }
+        .options-list { list-style: none; padding: 0; }
+        .option-item { margin: 8px 0; }
+        
+        .feedback { margin-top: 10px; font-weight: bold; display: none; }
+        .rationale { 
+            font-size: 0.85em; 
+            color: #555; 
+            background: #f9f9f9; 
+            padding: 8px; 
+            border-left: 3px solid var(--secondary);
+            margin-top: 5px;
+            display: none;
+        }
+        .correct { color: var(--success); }
+        .incorrect { color: var(--danger); }
+        
+        #quiz-ui { display: none; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Microbiology MCQ Practice</h1>
+    
+    <div id="timer">Time Remaining: 02:00:00</div>
+
+    <div id="intro" class="quiz-intro">
+        <p>This exam consists of 50 Multiple Choice Questions.</p>
+        <p><strong>Duration:</strong> 2 Hours</p>
+        <button class="btn btn-start" onclick="startQuiz()">Start the Quiz</button>
+    </div>
+
+    <div id="quiz-ui">
+        <form id="quiz-form">
+            <div id="questions-container"></div>
+            
+            <div style="text-align: center; margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px;">
+                <button type="button" class="btn btn-check" onclick="processResults(false)">Check Answers</button>
+                <button type="button" class="btn btn-submit" onclick="processResults(true)">Submit Final Exam</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        { q: "Nurses are involved in controlling infections in hospitals and apply microbiology knowledge in health care for which of the following specific purposes?", options: ["Designing hospital architecture", "Administering physical therapy", "Drug production, diagnosis, sterilization methods, and cleanliness", "Developing supernatural disease theories"], correct: 2, rationale: "Nurses apply microbiology knowledge to practical clinical purposes: drug production, diagnosis, sterilization, cleanliness." },
+        { q: "Which of the following statements accurately describes the nature of microorganisms?", options: ["They are strictly unicellular and inhabit only extreme environments.", "They are mostly unicellular, but some can form complex structures and some are even multicellular.", "They live in isolated states and their activities are unregulated by their environments.", "They are always visible to the naked eye when fully mature."], correct: 1, rationale: "Microorganisms are mostly unicellular, but some form complex structures or are multicellular." },
+        { q: "Microbiology encompasses the study of various organisms too small to be visible with the naked eye; collectively known as 'microbes', these include which of the following?", options: ["Bacteria, archaea, viruses, fungi, prions, protozoa, and algae", "Bacteria, helminths, insects, and fungi", "Viruses, archaea, and exclusively multicellular eukaryotes", "Prions, archaea, plants, and fungi"], correct: 0, rationale: "Microbes include bacteria, archaea, viruses, fungi, prions, protozoa, algae." },
+        { q: "Parasitology, a branch of medical microbiology, is subdivided into two distinct arms: Protozoology and Helminthology. What does Helminthology specifically study?", options: ["The immune system", "Viruses", "Helminths", "General bacterial morphology"], correct: 2, rationale: "Helminthology studies parasitic worms." },
+        { q: "In the historical development of microbiology, who suggested that diseases were caused by inhaled or ingested invisible beings long before the development of the microscope?", options: ["Antonie Van Leeuwenhoek", "Louis Pasteur and Robert Koch", "Varo and Collumella", "Edward Jenner"], correct: 2, rationale: "Varo and Collumella suggested invisible beings cause disease before microscopes." },
+        { q: "Due to his introduction of methods of sterilization, work on the fermentation of wine, and accidental discovery of the process of attenuation, who is known as the ”Father of Modern Microbiology”?", options: ["Antonie Van Leeuwenhoek", "Louis Pasteur", "Joseph Lister", "Robert Koch"], correct: 1, rationale: "Louis Pasteur is called the Father of Modern Microbiology due to sterilization, fermentation, attenuation." },
+        { q: "Joseph Lister is known as the Father of Antiseptic Surgery. What did his counterpart, Robert Koch, introduce to the field of microbiology?", options: ["Antiseptic techniques in surgery", "The discovery of Penicillin", "Staining techniques and the discovery of tuberculosis bacilli and Vibrio cholera", "Work in immunology and antimicrobial therapy"], correct: 2, rationale: "Koch introduced staining techniques and identified tuberculosis and cholera bacilli." },
+        { q: "The system of nomenclature for organisms in use today was established in 1735 by Carolus Linnaeus. According to this system, how must scientific names be written?", options: ["The genus is capitalized, the specific epithet is not, and both are underlined or italicized.", "The specific epithet is capitalized, the genus is not, and only the genus is italicized.", "Both the genus and specific epithet are capitalized and written in bold.", "Names are anglicized and neither is capitalized."], correct: 0, rationale: "Correct binomial nomenclature: genus capitalized, species lowercase, italicized or underlined." },
+        { q: "Microorganisms have been divided into prokaryotes and eukaryotes based on their cellular organization and biochemistry. Which of the following accurately describes the chromosomal arrangement of prokaryotic cells?", options: ["Multiple linear chromosomes with histone proteins", "A single coiled haploid (n) chromosome in the cytoplasm 'nucleoid' region", "Paired diploid (2n) chromosomes located inside a membrane-bound nucleus", "Circular DNA surrounded by a nuclear envelope"], correct: 1, rationale: "Prokaryotes have a single, circular, haploid chromosome in nucleoid." },
+        { q: "While eukaryotic cells generally range from 10 to 100 μm in size, what is the typical size range of a prokaryotic cell?", options: ["0.05 to 0.1 μm", "0.1 to 5.0 μm", "1 to 10 mm", "100 μm to several meters"], correct: 1, rationale: "Typical prokaryotic size: 0.1–5 μm." },
+        { q: "Regarding ribosomes, a structural difference exists between prokaryotes and eukaryotes. What is the sedimentation coefficient of prokaryotic ribosomes, and where are they located?", options: ["80S, both free in the cytoplasm and attached to the endoplasmic reticulum", "70S, completely attached to the cell wall", "70S, free in the cytoplasm", "80S, free in the cytoplasm"], correct: 2, rationale: "Prokaryotic ribosomes: 70S, free in cytoplasm." },
+        { q: "While most bacteria range from 0.2 to 2.0 μm in diameter, some exceptional bacteria are significantly larger. Which of the following bacteria can exceed 600 μm (0.6 mm) in length?", options: ["Escherichia coli", "Epulopiscium fishelsoni", "Mycoplasma", "Vibrio cholera"], correct: 1, rationale: "Epulopiscium fishelsoni can exceed 600 μm." },
+        { q: "The smallest known bacteria lack a cell wall and measure only 0.3 μm, making them as small as the largest viruses. To which genus do these bacteria belong?", options: ["Bacillus", "Mycobacterium", "Mycoplasma", "Actinomycetes"], correct: 2, rationale: "Mycoplasma lacks cell wall and is extremely small." },
+        { q: "Bacterial shapes dictate their arrangements. Which term describes spherical bacteria that remain attached in chain-like formations?", options: ["Diplococci", "Streptococci", "Staphylococci", "Sarcina"], correct: 1, rationale: "Streptococci: spherical bacteria in chains." },
+        { q: "Which of the following bacterial groups are characterized as branching filamentous bacteria?", options: ["Mycoplasmas", "Streptobacilli", "Actinomycetes", "Spirochetes"], correct: 2, rationale: "Actinomycetes are branching filamentous bacteria." },
+        { q: "Many bacteria and archaea secrete sticky or slimy materials on their cell surface called the glycocalyx. Why is the glycocalyx not considered part of the cell wall?", options: ["It is composed purely of inorganic ions.", "It does not confer significant structural strength on the cell.", "It is found interior to the plasma membrane.", "It is only present in eukaryotic organisms."], correct: 1, rationale: "Glycocalyx does not provide structural strength." },
+        { q: "The bacterial glycocalyx can be described as a capsule or a slime layer depending on its organization. What specifically defines a capsule?", options: ["The substance is unorganized and loosely attached to the cell wall.", "The substance is organized and firmly attached to the cell wall.", "It consists of a 9+2 arrangement of microtubules.", "It is an intracellular storage structure."], correct: 1, rationale: "Capsule: organized and firmly attached." },
+        { q: "Capsules are readily visible by light microscopy if cells are treated with India ink. What role does the ink play in this observation?", options: ["It permanently stains the polysaccharide capsule a dark purple.", "It stains the background but not the capsule, creating contrast.", "It acts as a mordant to bind crystal violet to the capsule.", "It dissolves the slime layer to reveal the capsule beneath."], correct: 1, rationale: "India ink stains background, leaving capsule clear for contrast." },
+        { q: "Capsules are important in contributing to bacterial virulence. How does the capsule of Bacillus anthracis contribute to this, and what is it composed of?", options: ["It protects from phagocytosis by the host's cells and produces a capsule of D-glutamic acids.", "It assists in bio-film formation and is composed of lipopolysaccharides.", "It protects against dehydration by secreting peptidoglycan.", "It allows the bacteria to attach to the cells of the small intestine."], correct: 0, rationale: "B. anthracis capsule protects against phagocytosis; made of D-glutamic acid." },
+        { q: "Flagella are long, thin appendages that are free at one end and anchored into the cell at the other. What term describes bacteria, such as Diphtheria bacilli, that completely lack flagella?", options: ["Monotrichous", "Lophotrichous", "Peritrichous", "Atrichous"], correct: 3, rationale: "Atrichous: bacteria lacking flagella." },
+        { q: "The movement of a bacterial flagellum results from the rotation of its basal body, which requires the continuous generation of energy. How do flagella propel the bacterium?", options: ["By whipping back and forth like eukaryotic flagella.", "By pushing against the surrounding liquid as they rotate clockwise or counterclockwise.", "By contracting and expanding longitudinal microtubules.", "By secreting a slime trail that slides the bacteria forward."], correct: 1, rationale: "Prokaryotic flagella rotate like propellers." },
+        { q: "Which hairlike appendages are shorter, straighter, and thinner than flagella, and consist of the protein pilin arranged helically around a central core?", options: ["Axial filaments", "Teichoic acids", "Fimbriae and Pili", "Lipoproteins"], correct: 2, rationale: "Fimbriae/pili are shorter than flagella and helically arranged." },
+        { q: "Fimbriae can occur at the poles of the bacterial cell or be evenly distributed over the entire surface. What is a primary characteristic of fimbriae?", options: ["They number only one or two per cell and transfer DNA.", "They have a tendency to adhere to each other and to surfaces.", "They propel the cell through tumbling and running.", "They synthesize peptidoglycan."], correct: 1, rationale: "Fimbriae adhere to surfaces and each other." },
+        { q: "Pili are typically longer than fimbriae and number only one or two per cell. Which process are conjugation (sex) pili directly involved in?", options: ["Allowing the transfer of DNA from one cell to another", "Shielding the cell from phagocytosis", "Maintaining buoyancy in aquatic environments", "Attaching to the small intestine"], correct: 0, rationale: "Conjugation pili transfer DNA between cells." },
+        { q: "The cell wall of a bacterial cell is a complex, semirigid structure that protects the interior from adverse changes. Which macromolecular network primarily composes the bacterial cell wall?", options: ["Cellulose", "Glycogen", "Peptidoglycan (murine)", "Chitin"], correct: 2, rationale: "Bacterial cell wall: peptidoglycan." },
+        { q: "Peptidoglycan is found in all bacteria that contain a cell wall, but is notably absent in certain domains. Which organisms lack peptidoglycan in their cell walls?", options: ["Gram-positive bacteria", "Gram-negative bacteria", "Archaea and Eukarya", "Cyanobacteria"], correct: 2, rationale: "Archaea and eukaryotes lack peptidoglycan." },
+        { q: "Peptidoglycan is composed of alternating repeats of two modified glucose residues along with amino acids. What type of linkage connects N-acetylglucosamine (NAG) and N-acetylmuramic acid (NAM)?", options: ["α-1,4 linkage", "β-1,4 linkage", "Peptidic cross-linkage only", "Phosphodiester bond"], correct: 1, rationale: "NAG-NAM linked by β-1,4 glycosidic bond." },
+        { q: "Peptidoglycan can be destroyed by an enzyme that cleaves the glycosidic bond between N-acetylglucosamine and N-acetylmuramic acid, weakening the wall and causing cell lysis. What is the name of this enzyme?", options: ["Penicillin", "Safranin", "Lysozyme", "Polymerase"], correct: 2, rationale: "Lysozyme cleaves β-1,4 bonds in peptidoglycan." },
+        { q: "The Gram-positive cell wall forms a thick, rigid structure containing teichoic acids. Up to what percentage of the Gram-positive cell wall can consist of peptidoglycan?", options: ["10%", "30%", "60%", "90%"], correct: 3, rationale: "Up to 90% of Gram-positive cell wall is peptidoglycan." },
+        { q: "Gram-negative bacteria contain only one or a very few layers of peptidoglycan, making them more susceptible to mechanical breakage. Where is the peptidoglycan bonded to lipoproteins in a Gram-negative cell?", options: ["In the outer membrane", "In the periplasm", "In the nucleoid region", "In the capsule"], correct: 1, rationale: "In Gram-negative bacteria, peptidoglycan is in periplasm and bonded to lipoproteins." },
+        { q: "The outer membrane of the Gram-negative cell provides a barrier to detergents, heavy metals, bile salts, certain dyes, antibiotics, and evades phagocytosis. What are the primary constituents of this outer membrane?", options: ["Peptidoglycan, teichoic acids, and lipoteichoic acids", "Lipopolysaccharides, lipoproteins, and phospholipids", "Sterols and triglycerides", "Glycogen and polyphosphate"], correct: 1, rationale: "Outer membrane: LPS, lipoproteins, phospholipids." },
+        { q: "Molecules such as nucleotides, disaccharides, peptides, amino acids, vitamin B12, and iron must pass through the outer membrane of Gram-negative bacteria. What membrane structures permit this passage?", options: ["Fimbriae", "Plasmids", "Porins", "Metachromatic granules"], correct: 2, rationale: "Porins allow selective passage of molecules." },
+        { q: "In terms of molecular permeability, how do Gram-positive and Gram-negative bacterial cell walls compare?", options: ["Gram-positive walls are less penetrable; Gram-negative walls are more penetrable.", "Gram-positive walls are more penetrable; Gram-negative walls are less penetrable.", "Both have completely impermeable cell walls.", "Both have highly penetrable cell walls due to the absence of lipids."], correct: 1, rationale: "Gram-positive walls are more penetrable; Gram-negative walls are less penetrable due to outer membrane." },
+        { q: "In 1884, Danish bacteriologist Hans Christian Gram developed the Gram stain, which uses crystal violet as the primary stain. Why is crystal violet referred to as a basic purple dye?", options: ["It dissociates as CV⁺ and Cl⁻ and the CV⁺ ions interact with the negative charge components in the bacterial cell.", "It acts strictly as an acidic counterstain.", "It dissolves the outer membrane of Gram-negative cells.", "It only stains the teichoic acids found in basic environments."], correct: 0, rationale: "CV⁺ is a basic dye that binds negatively charged cell components." },
+        { q: "During the Gram stain procedure, iodine is added after crystal violet. What is the function of iodine in this process?", options: ["It acts as a decolorizing agent.", "It acts as a mordant (fixative) to interact with CV⁺ and form a large complex.", "It serves as the primary stain for Gram-negative cells.", "It breaks down the peptidoglycan layer."], correct: 1, rationale: "Iodine acts as mordant, forming CV-I₂ complex." },
+        { q: "The critical differentiating step in the Gram stain uses alcohol or an alcohol-acetone solution. What is the exact effect of this decolorizing agent on Gram-negative bacteria?", options: ["It traps the CV-I₂ complex within the thick peptidoglycan.", "It washes away the CV-I₂ complex through the thin layer of peptidoglycan, making the cell colorless.", "It permanently stains the outer membrane pink.", "It causes the mycolic acid to clump."], correct: 1, rationale: "Decolorizer removes CV-I₂ from thin Gram-negative peptidoglycan." },
+        { q: "At the end of the Gram stain procedure, what color do Gram-positive and Gram-negative bacteria appear, respectively, after the application of the safranin counterstain?", options: ["Both appear pink.", "Gram-positive remain purple; Gram-negative become pink.", "Gram-positive become pink; Gram-negative remain purple.", "Gram-positive become colorless; Gram-negative become purple."], correct: 1, rationale: "Gram-positive remain purple; Gram-negative take up safranin and become pink." },
+        { q: "Members of the genus Mycoplasma are unique because they have atypical cell walls. How do their plasma membranes differ from those of other bacteria to protect them from lysis?", options: ["They possess a thick outer membrane of lipopolysaccharide.", "They contain uniquely high concentrations of teichoic acids.", "They have lipids called sterols in their plasma membranes.", "They contain 60% mycolic acid."], correct: 2, rationale: "Mycoplasma have sterols in plasma membrane for strength." },
+        { q: "The acid-fast stain identifies bacteria containing high concentrations (60%) of a hydrophobic waxy lipid in their cell wall. What is the name of this lipid, and which genus is it characteristic of?", options: ["Lipopolysaccharide; Escherichia", "Mycolic acid; Mycobacterium", "Poly-β-hydroxybutyrate; Bacillus", "Peptidoglycan; Streptococcus"], correct: 1, rationale: "Mycolic acid is the waxy lipid of Mycobacterium." },
+        { q: "In acid-fast bacteria, mycolic acid forms a layer outside a thin layer of peptidoglycan. How are the mycolic acid and peptidoglycan layers held together?", options: ["By peripheral proteins", "By lipoproteins", "By a polysaccharide", "By a phospholipid bilayer"], correct: 2, rationale: "Mycolic acid layer attaches to peptidoglycan via polysaccharide linkages." },
+        { q: "The bacterial cell membrane consists primarily of a phospholipid bilayer and proteins. Each phospholipid molecule contains a polar head and nonpolar tails. What are the chemical compositions of the polar head and the nonpolar tails, respectively?", options: ["Phosphate group and glycerol; fatty acids", "Fatty acids; phosphate group and glycerol", "Peptidoglycan; lipopolysaccharide", "Sterols; amino acids"], correct: 0, rationale: "Polar head: phosphate + glycerol; nonpolar tails: fatty acids." },
+        { q: "Protein molecules in the cell membrane are arranged in a variety of ways. Which proteins can be removed from the membrane only after disrupting the lipid bilayer using detergents, and mostly penetrate the membrane as transmembrane proteins?", options: ["Peripheral membrane proteins", "Integral proteins", "Glycoproteins", "Ribosomal proteins"], correct: 1, rationale: "Integral proteins penetrate bilayer." },
+        { q: "Some proteins and lipids on the outer surface of the plasma membrane attach to carbohydrates, forming glycoproteins and glycolipids. What role do these structures play?", options: ["They break down nutrients to produce ATP.", "They help protect and lubricate the cell and are involved in cell-to-cell interactions.", "They serve as the primary site of DNA replication.", "They act as a semipermeable barrier for large molecules."], correct: 1, rationale: "Glycoproteins/glycolipids protect, lubricate, and mediate cell interactions." },
+        { q: "It was previously believed that the absence of a cytoskeleton distinguished prokaryotes from eukaryotes. However, atomic force microscopy revealed that the bacterial cytoskeleton contains proteins homologous to which eukaryotic structures?", options: ["Histones and chromatin", "Actin and tubulin", "Myosin and collagen", "Keratin and elastin"], correct: 1, rationale: "Bacterial cytoskeleton has actin/tubulin homologs." },
+        { q: "The bacterial cytoplasm is thick, aqueous, semitransparent, and elastic. Approximately what percentage of the cytoplasm is water?", options: ["50%", "60%", "80%", "95%"], correct: 2, rationale: "Cytoplasm is ~80% water." },
+        { q: "The bacterial nucleoid carries all the information required for the cell’s structures and functions. Which of the following accurately describes the bacterial chromosome within the nucleoid?", options: ["It is surrounded by a dense nuclear envelope.", "It usually contains multiple short, linear strands of RNA.", "It usually contains a single long, continuous, and frequently circularly arranged thread of double-stranded DNA.", "It strictly exists as dumbbell-shaped plasmids."], correct: 2, rationale: "Bacterial chromosome: single, circular, double-stranded DNA; no nuclear envelope." },
+        { q: "In addition to the bacterial chromosome, bacteria often contain small, usually circular, double-stranded DNA molecules. What are these extrachromosomal genetic elements called, and what do they typically contain?", options: ["Mesosomes; respiratory enzymes", "Ribosomes; ribosomal RNA", "Plasmids; genes for toxin production and antibiotic resistance", "Inclusions; reserve deposits of polyphosphate"], correct: 2, rationale: "Plasmids: extrachromosomal DNA carrying toxins/antibiotic resistance genes." },
+        { q: "Bacterial inclusions are reserve deposits used when the environment is deficient in nutrients. Which inclusion serves as a reserve of inorganic phosphate needed for ATP synthesis and is characteristic of Corynebacterium diphtheriae?", options: ["Polysaccharide granules", "Carboxysomes", "Metachromatic granules (Volutin)", "Magnetosomes"], correct: 2, rationale: "Metachromatic granules store inorganic phosphate for ATP." },
+        { q: "Certain aquatic prokaryotes, such as cyanobacteria, use specific inclusions to maintain buoyancy at appropriate depths to receive sufficient oxygen, light, and nutrients. What are these inclusions called?", options: ["Magnetosomes", "Gas vacuoles", "Sulfur granules", "Lipid inclusions"], correct: 1, rationale: "Gas vacuoles provide buoyancy." },
+        { q: "Some bacteria in the genera Bacillus and Clostridium form highly resistant resting stages that can survive for long periods under unfavorable conditions. What are these structures, and what do they resist?", options: ["Plasmids; they resist antibiotic degradation.", "Endospores; they are extremely resistant to drying, chemicals, and heat.", "Vegetative cells; they are resistant to osmotic lysis.", "Fimbriae; they are resistant to phagocytosis."], correct: 1, rationale: "Endospores resist drying, heat, and chemicals." }
+    ];
+
+    let timerInterval;
+
+    function startQuiz() {
+        document.getElementById('intro').style.display = 'none';
+        document.getElementById('quiz-ui').style.display = 'block';
+        document.getElementById('timer').style.display = 'block';
+        
+        renderQuestions();
+        startTimer(120 * 60); // 2 hours
+    }
+
+    function renderQuestions() {
+        const container = document.getElementById('questions-container');
+        quizData.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'question-block';
+            div.id = `q-block-${index}`;
+            
+            let optionsHtml = '';
+            item.options.forEach((opt, oIdx) => {
+                optionsHtml += `
+                    <li class="option-item">
+                        <label>
+                            <input type="radio" name="q${index}" value="${oIdx}">
+                            ${opt}
+                        </label>
+                    </li>
+                `;
+            });
+
+            div.innerHTML = `
+                <div class="question-text">${index + 1}. ${item.q}</div>
+                <ul class="options-list">${optionsHtml}</ul>
+                <div id="feedback-${index}" class="feedback"></div>
+                <div id="rationale-${index}" class="rationale"><strong>Rationale:</strong> ${item.rationale}</div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function startTimer(duration) {
+        let timer = duration, hours, minutes, seconds;
+        timerInterval = setInterval(() => {
+            hours = parseInt(timer / 3600, 10);
+            minutes = parseInt((timer % 3600) / 60, 10);
+            seconds = parseInt(timer % 60, 10);
+
+            hours = hours < 10 ? "0" + hours : hours;
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+
+            document.getElementById('timer').textContent = `Time Remaining: ${hours}:${minutes}:${seconds}`;
+
+            if (--timer < 0) {
+                clearInterval(timerInterval);
+                processResults(true);
+                alert("Time is up!");
+            }
+        }, 1000);
+    }
+
+    function processResults(isFinal) {
+        let score = 0;
+        quizData.forEach((item, index) => {
+            const selected = document.querySelector(`input[name="q${index}"]:checked`);
+            const feedback = document.getElementById(`feedback-${index}`);
+            const rationale = document.getElementById(`rationale-${index}`);
+
+            if (selected) {
+                const val = parseInt(selected.value);
+                if (val === item.correct) {
+                    feedback.innerHTML = "✓ Correct";
+                    feedback.className = "feedback correct";
+                    score++;
+                } else {
+                    feedback.innerHTML = `✗ Incorrect. Correct Answer: ${item.options[item.correct]}`;
+                    feedback.className = "feedback incorrect";
+                }
+                feedback.style.display = 'block';
+                rationale.style.display = 'block';
+            } else if (isFinal) {
+                feedback.innerHTML = `! No answer selected. Correct Answer: ${item.options[item.correct]}`;
+                feedback.className = "feedback incorrect";
+                feedback.style.display = 'block';
+                rationale.style.display = 'block';
+            }
+        });
+
+        if (isFinal) {
+            clearInterval(timerInterval);
+            window.scrollTo(0, 0);
+            alert(`Exam Submitted!\nYour Score: ${score} / ${quizData.length}`);
+        }
+    }
+</script>
+
+</body>
+</html>
