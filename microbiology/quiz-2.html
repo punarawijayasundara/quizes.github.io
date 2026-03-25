@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microbiology MCQ Practice Exam</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { text-align: center; color: #2c3e50; }
+        #timer {
+            position: sticky;
+            top: 0;
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-weight: bold;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            z-index: 100;
+        }
+        .start-screen {
+            text-align: center;
+            padding: 50px 0;
+        }
+        .quiz-area { display: none; }
+        .question-block {
+            margin-bottom: 25px;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .question-text { font-weight: bold; margin-bottom: 10px; }
+        .options-list { list-style: none; padding: 0; }
+        .option-item { margin-bottom: 8px; }
+        label { cursor: pointer; display: block; padding: 5px; border-radius: 4px; }
+        label:hover { background-color: #f0f0f0; }
+        
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        .btn:hover { background-color: #2980b9; }
+        .btn-check { background-color: #27ae60; margin-right: 10px; }
+        .btn-check:hover { background-color: #219150; }
+        
+        .feedback { margin-top: 10px; font-weight: bold; display: none; }
+        .correct { color: #27ae60; }
+        .incorrect { color: #e74c3c; }
+        .rationale {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+            display: none;
+            padding: 8px;
+            background: #f9f9f9;
+            border-left: 3px solid #3498db;
+        }
+        .controls {
+            margin-top: 30px;
+            text-align: center;
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Microbiology Practice Paper</h1>
+    
+    <div id="startScreen" class="start-screen">
+        <p>This exam contains 50 questions. You have 2 hours to complete it.</p>
+        <button class="btn" onclick="startQuiz()">Start the Quiz</button>
+    </div>
+
+    <div id="quizArea" class="quiz-area">
+        <div id="timer">Time Remaining: 02:00:00</div>
+        <form id="quizForm">
+            <div id="questionsContainer"></div>
+            
+            <div class="controls">
+                <button type="button" class="btn btn-check" onclick="checkAnswers(false)">Check Answers (Progress)</button>
+                <button type="button" class="btn" onclick="checkAnswers(true)">Submit Final</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+const quizData = [
+    { q: "What is the primary purpose of applying a simple stain to a microorganism?", options: ["To differentiate between Gram-positive and Gram-negative cell walls", "To highlight the entire microorganism so that cellular shapes and basic structures are visible", "To selectively stain for survival structures like endospores", "To detect the presence of waxy materials in the cell envelope"], correct: 1, rationale: "Simple stain highlights the entire cell to show morphology and arrangement." },
+    { q: "In simple staining procedures, what is the appropriate exposure time for Carbolfuchsin?", options: ["1 minute", "30 seconds", "20 seconds", "5 minutes"], correct: 2, rationale: "20 seconds is the standard exposure time for Carbolfuchsin in simple staining." },
+    { q: "When preparing a specimen for brightfield microscopy, what are the first two steps before staining?", options: ["Application of a primary stain followed by a mordant", "Smear preparation followed by heat-fixing", "Decolorization followed by counterstaining", "Air-drying followed by an alcohol wash"], correct: 1, rationale: "Smear preparation and heat-fixing are essential first steps to adhere cells to the slide." },
+    { q: "During the Gram stain, which chemical acts as the mordant?", options: ["Crystal Violet", "Alcohol", "Safranin", "Iodine"], correct: 3, rationale: "Iodine forms the Crystal Violet-Iodine complex inside the cell wall." },
+    { q: "The Acid-fast stain binds strongly to bacteria possessing:", options: ["A highly cross-linked peptidoglycan layer", "A prominent lipopolysaccharide outer membrane", "A waxy material in their cell walls", "An extensive polysaccharide capsule"], correct: 2, rationale: "Acid-fast stains bind to mycolic acids (waxy material) in the cell wall." },
+    { q: "Which pathogenic microorganism is classically identified using the Acid-Fast stain?", options: ["Escherichia coli", "Staphylococcus aureus", "Mycobacterium tuberculosis", "Vibrio cholerae"], correct: 2, rationale: "Mycobacterium species are the primary acid-fast pathogens." },
+    { q: "Special stains are used to highlight which structures?", options: ["Endospores, flagella, or capsules", "Mitochondria, ribosomes, and Golgi apparatus", "Nucleoid, plasmids, and vacuoles", "Peptidoglycan and teichoic acids"], correct: 0, rationale: "Special stains target extracellular or survival structures like spores, flagella, and capsules." },
+    { q: "How does budding differ from binary fission?", options: ["Budding yields two perfectly equivalent cells", "Binary fission yields two equivalent cells; budding forms a smaller daughter cell", "Budding is driven only by osmotic pressure", "Binary fission requires a semi-solid medium"], correct: 1, rationale: "Binary fission is symmetric division; budding is asymmetric." },
+    { q: "Under optimal nutritional conditions, the generation time of E. coli is:", options: ["10 minutes", "20 minutes", "60 minutes", "2 hours"], correct: 1, rationale: "E. coli has a well-known doubling time of approximately 20 minutes." },
+    { q: "When environmental temperature exceeds a microorganism's max growth temperature:", options: ["Enzymatic reactions occur at maximal rate", "The membrane begins to gel", "Transport processes slow", "Proteins may denature or be irreversibly damaged"], correct: 3, rationale: "High temperatures lead to the irreversible denaturation of proteins and enzymes." },
+    { q: "Spoilage and disease-causing organisms are generally:", options: ["Psychrophiles", "Psychrotrophs", "Mesophiles", "Thermophiles"], correct: 2, rationale: "Mesophiles thrive at 25–40°C, covering human body temperature and room temp." },
+    { q: "Archaea in hydrothermal vents and volcanic hot springs are:", options: ["Psychrotrophs", "Hyperthermophiles", "Thermophiles", "Mesophiles"], correct: 1, rationale: "Hyperthermophiles thrive in extreme heat, often above 80°C." },
+    { q: "Organisms responsible for spoilage in refrigerators are:", options: ["Psychrotrophs", "Psychrophiles", "Mesophiles", "Hyperthermophiles"], correct: 0, rationale: "Psychrotrophs can grow at 0°C but prefer slightly higher temps, making them fridge spoilers." },
+    { q: "Lactobacillus grows optimally in:", options: ["pH > 8.0", "Acidic pH (3.5–6.8)", "Only pH 7.0", "pH < 2.0"], correct: 1, rationale: "Lactobacilli are acidophiles, common in the vaginal flora and fermented foods." },
+    { q: "Vibrio cholerae grows best at:", options: ["Acidic pH 5.5", "Cannot tolerate alkaline conditions", "Slightly basic pH 8.0 (survives up to pH 11)", "Strict pH 7.2"], correct: 2, rationale: "Vibrio species are alkaliphiles and tolerate high pH levels." },
+    { q: "What % of a microbial cell is water?", options: ["40–50%", "60–70%", "80–90%", "95–99%"], correct: 2, rationale: "Standard microbial cells are roughly 80–90% water." },
+    { q: "Organisms that tolerate ≥2% salt but don’t require it:", options: ["Extreme halophiles", "Facultative halophiles", "Obligate halophiles", "Plasmolyzed cells"], correct: 1, rationale: "Facultative halophiles do not require high salt but can survive in it." },
+    { q: "Autotrophic bacteria obtain carbon from:", options: ["Organic materials", "Solid agar", "Carbon dioxide", "Raw nitrogen"], correct: 2, rationale: "Autotrophs 'self-feed' by fixing CO2 from the atmosphere." },
+    { q: "Nitrogen (14% of dry weight) is needed mainly to form:", options: ["Carbohydrates", "Amino acids + DNA + RNA", "Enzyme cofactors in ETC", "Vitamins thiamin & biotin"], correct: 1, rationale: "Nitrogen is a core component of proteins (amino group) and nucleic acids." },
+    { q: "Which element is required for Gram-positive cell wall synthesis?", options: ["Iron", "Copper", "Calcium", "Potassium"], correct: 2, rationale: "Calcium serves as a cofactor for enzymes involved in Gram-positive cell wall assembly." },
+    { q: "Bacteria that grow better with oxygen but can grow anaerobically:", options: ["Obligate aerobes", "Facultative anaerobes", "Aerotolerant anaerobes", "Microaerophiles"], correct: 1, rationale: "Facultative anaerobes have the flexibility to use O2 or fermentation." },
+    { q: "Mycobacterium tuberculosis is a:", options: ["Obligate anaerobe", "Facultative anaerobe", "Obligate aerobe", "Microaerophile"], correct: 2, rationale: "M. tuberculosis strictly requires oxygen to survive." },
+    { q: "Obligate anaerobes cannot tolerate O₂ because:", options: ["They lack catalase & SOD", "Oxygen causes plasmolysis", "They internally generate toxic oxygen", "Oxygen inhibits carbon fixation"], correct: 0, rationale: "They lack the enzymes (Catalase/Superoxide Dismutase) to neutralize toxic oxygen radicals." },
+    { q: "In which phase do cells adapt without increasing in number?", options: ["Log phase", "Death phase", "Stationary phase", "Lag phase"], correct: 3, rationale: "Lag phase is for metabolic adjustment and enzyme synthesis, not division." },
+    { q: "Stationary phase occurs because:", options: ["Rapid exponential growth", "Nutrients ↓ and wastes ↑, division = death", "Massive rapid death", "Purely physical adaptation"], correct: 1, rationale: "The rate of cell death equals the rate of new cell formation." },
+    { q: "Agar is:", options: ["Protein from beef", "Synthetic polymer", "Polysaccharide from marine algae", "Carbohydrate from fungi"], correct: 2, rationale: "Agar is derived from red marine algae (Rhodophyta)." },
+    { q: "Semi-solid medium uses agar concentration:", options: ["1.5–2.0%", "0.2–0.5%", "5–10%", "0.01–0.1%"], correct: 1, rationale: "Lower agar concentration (0.2-0.5%) allows for motility testing." },
+    { q: "A slanted solid medium in a tube is:", options: ["Agar deep", "Broth tube", "Agar slant", "Petri plate"], correct: 2, rationale: "Slants provide a large surface area for growth in a small tube." },
+    { q: "A medium with rich ingredients but unknown composition is:", options: ["Synthetic", "Simple", "Complex", "Defined"], correct: 2, rationale: "Complex media use extracts (yeast, beef) where exact chemical formulas are unknown." },
+    { q: "To prepare 1 L of PDA (using natural ingredients):", options: ["100 g Potato, 10 g Dextrose, 10 g Agar", "200 g Potato, 20 g Dextrose, 20 g Agar", "500 g Potato, 50 g Dextrose, 15 g Agar", "39 g Potato, 0.5 g Dextrose, 2 g Agar"], correct: 1, rationale: "Standard natural PDA recipe uses 200g potato infusion, 20g dextrose, and 20g agar." },
+    { q: "Agar concentration in 1 L Nutrient Agar:", options: ["0.2%", "0.5%", "1.5%", "3.0%"], correct: 2, rationale: "1.5% is the standard concentration for solidifying media." },
+    { q: "Blood agar is classified as:", options: ["Simple basal medium", "Enriched medium", "Transport medium", "Enrichment liquid medium"], correct: 1, rationale: "Blood provides extra nutrients for fastidious organisms." },
+    { q: "Alkaline peptone water functions as:", options: ["Solid medium killing Gram-positives", "Liquid medium inhibiting commensals & enriching V. cholerae", "Indicator medium", "Transport medium"], correct: 1, rationale: "It specifically favors Vibrio growth while suppressing others via high pH." },
+    { q: "TCBS agar is selective for:", options: ["Neisseria gonorrhoeae", "Streptococcus pneumoniae", "Vibrio cholerae", "Escherichia coli"], correct: 2, rationale: "Thiosulfate-Citrate-Bile Salts-Sucrose agar is the gold standard for Vibrio." },
+    { q: "Yellow colonies of V. cholerae on TCBS appear due to pH indicators:", options: ["Methylene blue + carbolfuchsin", "Bromothymol blue + thymol blue", "Crystal violet + safranin", "Phenol red + neutral red"], correct: 1, rationale: "Vibrio ferments sucrose, changing these indicators to yellow." },
+    { q: "Non-lactose fermenters on MacConkey appear:", options: ["Yellow", "Colorless/pale", "Pink", "Deep red"], correct: 1, rationale: "Lactose fermenters turn pink; non-fermenters remain colorless." },
+    { q: "Gas detection in sugar media uses:", options: ["Petri dish", "Condenser tube", "Durham tube", "Pasteur pipette"], correct: 2, rationale: "The Durham tube is an inverted tube that traps CO2 or H2 gas." },
+    { q: "When a specimen contains delicate organisms (e.g., N. gonorrhoeae), use:", options: ["Indicator media", "Differential media", "Transport media", "Selective media"], correct: 2, rationale: "Transport media keep delicate bugs alive without allowing overgrowth during transit." },
+    { q: "Starting with 1 bacterium, how many after generation 4 (binary fission)?", options: ["8", "16", "32", "64"], correct: 1, rationale: "Calculated as 2 to the power of 4 (2*2*2*2) = 16." },
+    { q: "Selective vs Enrichment media – main difference:", options: ["Selective = liquid; enrichment = solid", "Selective = indicators; enrichment = Durham tubes", "Enrichment = liquid that stimulates pathogen & suppresses commensals; selective = solid that inhibits unwanted bacteria", "Enrichment tests gas; selective tests acid"], correct: 2, rationale: "Enrichment is usually a broth to boost low numbers; selective is usually solid to filter out noise." },
+    { q: "Sulfur is mainly used to synthesize:", options: ["Proteins & vitamins (thiamin, biotin)", "Teichoic acids", "Terminal electron acceptor", "Cross-link peptidoglycan in Gram-negative"], correct: 0, rationale: "Sulfur is found in cysteine, methionine, thiamin, and biotin." },
+    { q: "Element ~50% of dry weight → backbone of organic compounds:", options: ["Nitrogen", "Phosphorus", "Carbon", "Oxygen"], correct: 2, rationale: "Carbon is the structural backbone of all organic matter." },
+    { q: "Helicobacter species require low O₂ →", options: ["Aerotolerant anaerobes", "Microaerophiles", "Obligate anaerobes", "Facultative anaerobes"], correct: 1, rationale: "Microaerophiles need oxygen but at lower concentrations than the atmosphere." },
+    { q: "Classic obligate anaerobe:", options: ["Clostridium", "Lactobacillus", "E. coli", "M. tuberculosis"], correct: 0, rationale: "Clostridium species (like C. tetani) are famous obligate anaerobes." },
+    { q: "Aerotolerant anaerobes grow:", options: ["Only at top", "Only at bottom", "Evenly throughout the tube", "In a narrow band below surface"], correct: 2, rationale: "They don't use oxygen but aren't hurt by it, so they grow everywhere." },
+    { q: "Commercial PDA powder required per 1 L:", options: ["20 g", "39 g", "15 g", "50 g"], correct: 1, rationale: "39 grams is the standard manufacturer concentration for dehydrated PDA." },
+    { q: "Synthetic vs complex media:", options: ["Synthetic = pure chemicals with known composition; complex = unknown composition", "Synthetic always contains blood; complex uses plants", "Synthetic only liquid; complex only solid", "Synthetic inhibits fungi; complex for archaea"], correct: 0, rationale: "Synthetic (defined) media have an exact chemical formula." },
+    { q: "Medium for Streptococcus pneumoniae:", options: ["TCBS", "Alkaline peptone water", "Nutrient broth", "Blood agar"], correct: 3, rationale: "S. pneumoniae is fastidious and requires blood for growth and hemolysis detection." },
+    { q: "Inoculum means:", options: ["Waste products in stationary phase", "Microbes introduced into a medium", "Temperature limit of death", "Polysaccharide solidifier"], correct: 1, rationale: "The inoculum is the starting sample of microbes put into a culture." },
+    { q: "Phosphorus is required to synthesize:", options: ["Thiamin & biotin", "Peptidoglycan & teichoic acids", "DNA, RNA, ATP, phospholipids", "Calcium cofactors & porins"], correct: 2, rationale: "Phosphorus forms the phosphate backbone of DNA/RNA and the energy bonds in ATP." }
+];
+
+let timer;
+let timeLeft = 7200; // 2 hours in seconds
+
+function startQuiz() {
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('quizArea').style.display = 'block';
+    renderQuestions();
+    startTimer();
+}
+
+function startTimer() {
+    timer = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            checkAnswers(true);
+            alert("Time is up!");
+        }
+        updateTimerDisplay();
+    }, 1000);
+}
+
+function updateTimerDisplay() {
+    const hours = Math.floor(timeLeft / 3600);
+    const minutes = Math.floor((timeLeft % 3600) / 60);
+    const seconds = timeLeft % 60;
+    document.getElementById('timer').innerText = 
+        `Time Remaining: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+function renderQuestions() {
+    const container = document.getElementById('questionsContainer');
+    quizData.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'question-block';
+        div.id = `qblock-${index}`;
+        
+        let optionsHtml = '';
+        item.options.forEach((opt, optIndex) => {
+            optionsHtml += `
+                <li class="option-item">
+                    <label>
+                        <input type="radio" name="q${index}" value="${optIndex}">
+                        ${String.fromCharCode(97 + optIndex)}) ${opt}
+                    </label>
+                </li>`;
+        });
+
+        div.innerHTML = `
+            <div class="question-text">${index + 1}. ${item.q}</div>
+            <ul class="options-list">${optionsHtml}</ul>
+            <div id="feedback-${index}" class="feedback"></div>
+            <div id="rationale-${index}" class="rationale"><strong>Rationale:</strong> ${item.rationale}</div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function checkAnswers(isFinal) {
+    quizData.forEach((item, index) => {
+        const selected = document.querySelector(`input[name="q${index}"]:checked`);
+        const feedback = document.getElementById(`feedback-${index}`);
+        const rationale = document.getElementById(`rationale-${index}`);
+        
+        // Only show feedback for questions that have been answered
+        if (selected) {
+            const val = parseInt(selected.value);
+            if (val === item.correct) {
+                feedback.innerHTML = "✓ Correct";
+                feedback.className = "feedback correct";
+            } else {
+                feedback.innerHTML = `✗ Incorrect. Correct answer: ${String.fromCharCode(97 + item.correct)}`;
+                feedback.className = "feedback incorrect";
+            }
+            feedback.style.display = "block";
+            rationale.style.display = "block";
+        } else if (isFinal) {
+            // If final submission, show what was missed
+            feedback.innerHTML = `Not answered. Correct answer: ${String.fromCharCode(97 + item.correct)}`;
+            feedback.className = "feedback incorrect";
+            feedback.style.display = "block";
+            rationale.style.display = "block";
+        }
+    });
+
+    if (isFinal) {
+        clearInterval(timer);
+        window.scrollTo(0, 0);
+        alert("Quiz Submitted. Check your results below.");
+    }
+}
+</script>
+
+</body>
+</html>
