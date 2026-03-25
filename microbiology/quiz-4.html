@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microbiology: Sterilization & Disinfection Practice Test</title>
+    <style>
+        :root {
+            --primary-blue: #2c3e50;
+            --medical-blue: #3498db;
+            --light-grey: #f4f7f6;
+            --success-green: #27ae60;
+            --error-red: #e74c3c;
+            --white: #ffffff;
+            --border-color: #dcdde1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-grey);
+            color: var(--primary-blue);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 5px solid var(--medical-blue);
+            margin-bottom: 20px;
+        }
+
+        #start-screen {
+            text-align: center;
+            padding: 50px 20px;
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        #quiz-container {
+            display: none;
+        }
+
+        #timer {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: var(--primary-blue);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        #results-dashboard {
+            display: none;
+            background: var(--white);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 10px solid var(--medical-blue);
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .question-card {
+            background: var(--white);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .question-text {
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .options-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .option-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #eee;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-item:hover {
+            background-color: #f0f7ff;
+        }
+
+        .option-item input {
+            margin-right: 15px;
+        }
+
+        .rationale {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #e8f4fd;
+            border-left: 4px solid var(--medical-blue);
+            font-size: 0.95rem;
+            font-style: italic;
+        }
+
+        .correct { border: 2px solid var(--success-green) !important; background-color: #eafff2 !important; }
+        .incorrect { border: 2px solid var(--error-red) !important; background-color: #fff0f0 !important; }
+
+        .btn {
+            background-color: var(--medical-blue);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+            margin: 10px 5px;
+        }
+
+        .btn:hover { background-color: #2980b9; }
+        .btn-check { background-color: #7f8c8d; }
+        .btn-submit { background-color: var(--success-green); width: 100%; margin-top: 30px; font-size: 1.2rem; }
+
+        @media (max-width: 600px) {
+            .container { padding: 10px; }
+            #timer { position: static; display: block; margin: 0 auto 10px; text-align: center; width: fit-content; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Microbiology Practice Test</h1>
+    <p>Sterilization and Disinfection</p>
+</header>
+
+<div class="container">
+    <div id="start-screen">
+        <h2>Ready to begin your practice?</h2>
+        <p>This exam contains 50 questions. You have 2 hours to complete it.</p>
+        <button class="btn" onclick="startQuiz()">Start the Quiz</button>
+    </div>
+
+    <div id="timer">Time Remaining: 02:00:00</div>
+
+    <div id="results-dashboard">
+        <h2>Test Completed!</h2>
+        <div id="score-display" style="font-size: 2rem; color: var(--medical-blue);"></div>
+    </div>
+
+    <div id="quiz-container">
+        <form id="quiz-form">
+            <div id="questions-wrapper"></div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button type="button" class="btn btn-check" onclick="checkProgress()">Check Progress</button>
+                <button type="button" class="btn btn-submit" onclick="submitQuiz()">Submit Final Exam</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+const quizData = [
+    { q: "Which of the following accurately describes the primary distinction between sterilization and disinfection?", a: "C", r: "Sterilization kills all vegetative cells and spores; disinfection kills vegetative cells but may not destroy spores.", o: ["Sterilization removes pathogenic organisms from body surfaces, while disinfection removes them from inanimate objects.", "Disinfection results in the absolute killing of all microbes, whereas sterilization only inhibits their growth.", "Sterilization results in the absolute killing of microbial vegetative cells and spores, whereas disinfection is the adequate killing of vegetative cells, but not spores.", "Disinfection is achieved exclusively through physical agents, whereas sterilization is achieved exclusively through chemical agents."] },
+    { q: "A laboratory needs to safely dispose of various materials via incineration. Which material should NOT be incinerated because it emits dense black smoke and must be autoclaved instead?", a: "D", r: "Polystyrene emits dense black smoke during incineration and is unsuitable for burning; autoclaving is recommended.", o: ["Animal carcasses", "Contaminated cloths", "Polyvinyl chloride (PVC) plastics", "Polystyrene materials"] },
+    { q: "Which of the following is NOT an ideal characteristic of an antiseptic or disinfectant?", a: "B", r: "Ideal agents should function across a range of pH levels, not only in acidic media.", o: ["Wide spectrum of activity against all microbes", "Highly active only in exclusively acidic media", "Speedy action and high penetration power", "Activity in the presence of organic matter"] },
+    { q: "Chemical agents that inhibit bacterial growth without immediately killing them are classified as:", a: "B", r: "Bacteriostatic agents prevent growth but do not kill bacteria outright.", o: ["Germicidal", "Bacteriostatic", "Bactericidal", "Sterilants"] },
+    { q: "The killing effect of dry heat sterilization is primarily due to:", a: "C", r: "Dry heat kills via protein denaturation, oxidative damage, and disruption of cellular electrolytes.", o: ["Coagulation of proteins and disruption of the cell membrane", "Disruption of protein molecules and reaction with DNA and RNA", "Protein denaturation, oxidative damage, and toxic effects of elevated electrolytes", "Complete removal of essential groups needed for enzyme function"] },
+    { q: "Materials suitable for sterilization using a hot-air oven include:", a: "C", r: "Hot-air ovens are used for heat-stable substances like powders, fats, and glassware; heat-labile items cannot withstand the high temperatures.", o: ["Standard rubber catheters", "Liquid culture media containing sugars", "Liquid paraffin, dusting powder, fats, and grease", "Heat-labile antibiotics and serums"] },
+    { q: "Standard operating parameters for a hot-air oven used to sterilize glassware and scalpels:", a: "B", r: "Dry heat sterilization is typically performed at 160°C for 1 hour.", o: ["121°C for 15 min", "160°C for 1 hour", "63°C for 30 min", "100°C for 90 min"] },
+    { q: "Biological indicator spores used for dry heat sterilization control:", a: "B", r: "Bacillus subtilis spores are used and require anaerobic incubation in thioglycollate for 5 days at 37°C.", o: ["Bacillus stearothermophilus, incubated aerobically at 55°C for 5 days", "Bacillus subtilis, inoculated into thioglycollate media, incubated anaerobically at 37°C for 5 days", "Mycobacterium tuberculosis, aerobically for 1.5 hours at 80°C", "Bacillus subtilis, incubated aerobically 48 hours at room temperature"] },
+    { q: "Browne’s tube (green spot) indicates proper dry heat sterilization when green appears after:", a: "B", r: "The color change confirms sterilization at proper temperature and time for dry heat.", o: ["12 min at 121°C", "60 min at 160°C or 115 min at 150°C", "30 min at 60°C", "90 min at 100°C"] },
+    { q: "Thermal death time refers to:", a: "D", r: "It defines the time needed to achieve complete microbial death at a specified temperature.", o: ["The absolute highest temperature an organism can withstand before spontaneous combustion", "The exact temperature required to sterilize a solution at standard pressure", "The maximum time a chemical disinfectant remains stable in organic matter", "The minimum time required to kill a suspension of organisms at a set temperature"] },
+    { q: "The lethal effect of moist heat is primarily due to:", a: "B", r: "Moist heat kills microbes mainly by denaturing proteins.", o: ["Removal of intracellular water", "Denaturation and coagulation of proteins", "Mutagenic changes to chromosomes", "Oxidative damage to surface electrolytes"] },
+    { q: "Batch (Vat) pasteurization:", a: "B", r: "Batch pasteurization requires 63°C for 30 min to destroy non-sporing pathogens.", o: ["72°C for 15 sec", "63°C for 30 min", "100°C for 20 min", "121°C for 12 min"] },
+    { q: "Pasteurization destroys which specific organisms?", a: "C", r: "Pasteurization targets non-sporing pathogens including Mycobacteria, Brucellae, and Salmonella.", o: ["Bacillus and Clostridium spores", "Poliovirus and Hepatitis B", "Mycobacteria, Brucellae, and Salmonella", "Vibrio cholerae and extreme thermophiles"] },
+    { q: "Inspissation (for media such as Lowenstein-Jensen) involves:", a: "A", r: "Inspissation sterilizes media without degrading components by repeated moderate heating.", o: ["Heating at 80–85°C for 1.5 h each for 3 successive days", "Steaming in Koch steamer at 100°C for 90 min once", "Autoclaving at 121°C for 15–20 min", "Continuous flow heating at 72°C for 15 sec"] },
+    { q: "Mesophilic non-sporing bacteria killed at 60°C for 30 min, except:", a: "B", r: "These two require 60 min at 60°C to ensure death.", o: ["E. coli and Salmonella typhi", "Staphylococcus aureus and Enterococcus faecalis", "Bacillus subtilis and B. stearothermophilus", "Hepatitis B and Poliovirus"] },
+    { q: "Hepatitis B virus can survive at 60°C for:", a: "C", r: "Hepatitis B is unusually heat resistant among viruses.", o: ["30 min", "1–2 hours", "Over 10 hours", "Exactly 5 days"] },
+    { q: "Boiling water is not suitable for sterilizing surgical instruments because:", a: "C", r: "Spore-forming bacteria resist boiling, making it unreliable.", o: ["Rapid oxidation damages steel", "Requires >10 hours to kill pathogens", "Sporing bacteria survive prolonged boiling", "Vegetative bacteria form protective capsules"] },
+    { q: "Koch or Arnold steamer standard exposure to atmospheric steam:", a: "D", r: "90 minutes ensures sterilization without degrading media.", o: ["12 min", "30 min", "60 min", "90 min"] },
+    { q: "Tyndallization (intermittent sterilization) involves:", a: "A", r: "Intermittent sterilization allows spores to germinate and then kills them in the next cycle.", o: ["100°C for 20 min for 3 successive days; spores germinate and are killed in successive cycles", "121°C for 15 min for 3 successive days; extreme pressure bursts spores", "63°C for 30 min for 3 days; acts as bacteriostatic only", "80°C for 1.5 h on a single day; gently coagulates gelatin"] },
+    { q: "Intermittent sterilization may fail against:", a: "B", r: "Some anaerobic and thermophilic spores survive intermittent sterilization.", o: ["Strictly aerobic and mesophilic bacteria", "Certain anaerobes and thermophiles", "Enveloped viruses and fungi", "Pathogenic mycobacteria and brucellae"] },
+    { q: "In an autoclave, what happens to the boiling point of water when pressure inside the vessel increases?", a: "C", r: "Increased pressure raises the boiling point of water, allowing sterilization above 100°C.", o: ["The temperature at which water boils decreases", "The temperature at which water boils remains constant at 100°C", "The temperature at which water boils increases", "The water turns directly into a sterilizing gas"] },
+    { q: "Thermophilic organism used as a biological indicator for moist sterilization (autoclave):", a: "B", r: "B. stearothermophilus is thermophilic and its spores are ideal for verifying autoclave cycles.", o: ["Bacillus subtilis", "Bacillus stearothermophilus", "Mycobacterium tuberculosis", "Enterococcus faecalis"] },
+    { q: "Incubation conditions for spore strips after autoclaving:", a: "C", r: "Spore strips are incubated at 55°C for 5 days to confirm sterility.", o: ["37°C under anaerobic conditions for 5 days", "60°C for 30 min", "55°C for 5 days", "13°C or lower for 24 hours"] },
+    { q: "Bowie-Dick tape confirms autoclave exposure when:", a: "B", r: "Color change to brown/black indicates the autoclave has reached sterilizing conditions.", o: ["It turns green", "It turns brown/black", "It dissolves completely", "It turns yellow"] },
+    { q: "Filtration is recommended for which type of liquids?", a: "D", r: "Heat-labile liquids cannot withstand sterilization by heat; filtration removes microbes.", o: ["Liquid paraffin and fats", "Polyvinyl chloride (PVC) solutions", "Saline solutions", "Heat-labile liquids such as serum and antibiotics"] },
+    { q: "Unglazed ceramic filters and diatomaceous earth filters are classified as:", a: "C", r: "Both are types of candle filters used in water purification.", o: ["Membrane filters", "Asbestos filters", "Candle filters", "Biological filters"] },
+    { q: "Filters with high absorption that alkalinize filtered liquids, exemplified by sterimat:", a: "B", r: "Asbestos filters absorb impurities but may alter pH of liquids.", o: ["Diatomaceous earth filters", "Asbestos filters", "Membrane filters", "Unglazed ceramic filters"] },
+    { q: "To filter all viruses and some large proteins, which membrane pore size is required?", a: "D", r: "A 0.01 μm membrane ensures removal of viruses and large proteins.", o: ["0.45 μm", "0.22 μm", "0.10 μm", "0.01 μm"] },
+    { q: "Mechanism of UV radiation lethality:", a: "D", r: "UV radiation damages microbial DNA, preventing replication.", o: ["Coagulation of proteins", "Disruption of cell membrane lipids", "Oxidative damage to electrolytes", "Damaging DNA"] },
+    { q: "Ionizing radiation (gamma, X-rays) is used for sterilizing:", a: "B", r: "Ionizing radiation is used for heat-sensitive, mass-sterilizable materials (cold sterilization).", o: ["Glassware and syringes", "Plastic syringes, catheters, animal feeds, cardboard, metal foils", "Serum, antibiotics, and water", "Oral and rectal thermometers"] },
+    { q: "Which is NOT a primary mechanism of chemical agents?", a: "D", r: "Thermal shock is a physical mechanism, not a chemical action.", o: ["Coagulation of proteins", "Disruption of cell membrane", "Removal of essential groups for enzymes", "Induction of profound thermal shock"] },
+    { q: "Optimal aqueous alcohol concentration for microbicidal effect:", a: "B", r: "60–90% alcohol is most effective at denaturing bacterial proteins.", o: ["10–20%", "60–90%", "30–50%", "99–100%"] },
+    { q: "Comparing ethyl alcohol and isopropyl alcohol:", a: "B", r: "Isopropyl alcohol kills bacteria more effectively and is less volatile.", o: ["Ethyl alcohol is more bactericidal and less volatile", "Isopropyl alcohol is more bactericidal and less volatile", "Ethyl alcohol is active against spores; isopropyl is not", "Isopropyl alcohol is bacteriostatic; ethyl alcohol is bactericidal"] },
+    { q: "10% formalin with 0.5% tetra borate sterilizes:", a: "B", r: "This solution is recommended for sterilizing metal instruments.", o: ["Anatomical specimens", "Clean metal instruments", "Hair and wool contaminated with anthrax spores", "Plastic PVC catheters"] },
+    { q: "Aniline dyes have NO activity against:", a: "C", r: "Aniline dyes are inactive against M. tuberculosis, despite activity against Gram-positive bacteria.", o: ["Staphylococcus aureus", "Bacillus subtilis", "Mycobacterium tuberculosis", "Enterococcus faecalis"] },
+    { q: "Main difference in the use of iodine vs. chlorine:", a: "B", r: "Iodine is a skin antiseptic; chlorine is used to disinfect environments.", o: ["Iodine for specimens; chlorine for metal", "Iodine as antiseptic on skin; chlorine as environmental disinfectant", "Iodine for plastics; chlorine as hand rub", "Iodine for non-living objects; chlorine on mucosa"] },
+    { q: "Phenolics exert lethal effect primarily via:", a: "B", r: "Phenolics disrupt the cell membrane, leading to cell lysis.", o: ["Cross-linking viral RNA", "Damaging cell membrane causing lysis", "Dehydrating cell wall", "Combusting surface proteins"] },
+    { q: "Hydrogen peroxide shows greater activity against:", a: "B", r: "Broad-spectrum peroxygen with higher activity against Gram-positive bacteria.", o: ["Gram-negative bacteria", "Gram-positive bacteria", "Mycobacteria only", "Hepatitis viruses exclusively"] },
+    { q: "Major hazard of ethylene oxide (ETO):", a: "C", r: "ETO is toxic, flammable, and potentially carcinogenic.", o: ["Leaves heavy metal residues", "Highly corrosive liquid acid", "Flammable, explosive gas; carcinogenic and mutagenic", "Causes extreme hypothermia on contact"] },
+    { q: "Equipment specifically sterilized by ETO:", a: "A", r: "ETO is used for heat/moisture-sensitive critical items.", o: ["Heart-lung machines, respirators, dental equipment", "Glass pipettes and syringes", "Animal carcasses and pathological materials", "Routine bacterial culture media"] },
+    { q: "Beta propiolactone (BPL) sterilization concentration:", a: "B", r: "0.2% BPL is used for sterilizing biological products effectively.", o: ["2.0%", "0.2%", "10%", "60%"] },
+    { q: "To prevent spattering when flaming an inoculating loop:", a: "A", r: "Dipping prevents droplets from splashing infectious material.", o: ["Dip loop in disinfectant", "Rinse with sterile water", "Freeze using dry ice", "Dry in hot-air oven for 5 min"] },
+    { q: "Process of removing soil and dirt to reduce microbial load before sterilization:", a: "C", r: "Cleaning reduces microbial load and improves sterilization effectiveness.", o: ["Decontamination", "Disinfection", "Cleaning", "Antisepsis"] },
+    { q: "Hot-air oven must cool slowly (~2 h) before opening because:", a: "C", r: "Gradual cooling prevents glassware from breaking.", o: ["To dissipate ozone gas", "Sudden oxygen exposure ignites fats", "Sudden cooling may crack glassware", "Browne’s tube needs time to change color"] },
+    { q: "Cold sterilization via penetrative waves lethal to DNA is:", a: "D", r: "Ionizing radiation penetrates deeply, damaging DNA, used for commercial sterilization.", o: ["Infrared (IR) radiation", "UV radiation", "Ethylene oxide gas", "Ionizing radiation (X-rays, gamma rays)"] },
+    { q: "Chemical agent for fumigating wards but toxic when inhaled:", a: "B", r: "Formaldehyde gas disinfects environments but is highly irritant and toxic.", o: ["Absolute ethyl alcohol", "Formaldehyde gas", "Hydrogen peroxide liquid", "Iodine solution"] },
+    { q: "Why Polystyrene is unsuitable for incineration:", a: "B", r: "Polystyrene produces dense smoke; autoclaving is preferred.", o: ["Instantly melts explosively", "Emits dense black smoke", "Requires >5000°C to combust", "Releases lethal ionizing radiation"] },
+    { q: "Required exposure for Bacillus stearothermophilus spores in autoclave validation:", a: "C", r: "12 min at 121°C is sufficient to kill thermophilic spores.", o: ["15–20 sec at 72°C", "1 h at 160°C", "12 min at 121°C", "90 min at 100°C"] },
+    { q: "Temperature range for sterilizing aqueous solutions in autoclave:", a: "C", r: "Autoclaves sterilize aqueous solutions between 108–126°C under pressure.", o: ["60–80°C", "90–100°C", "108–126°C", "150–160°C"] },
+    { q: "Diatomaceous earth filter represents:", a: "C", r: "Diatomaceous earth filters are a type of candle filter for water purification.", o: ["Membrane filter", "Asbestos filter", "Candle filter", "Ionizing filter"] }
+];
+
+let timerInterval;
+let timeLeft = 7200; // 2 hours
+
+function startQuiz() {
+    document.getElementById('start-screen').style.display = 'none';
+    document.getElementById('quiz-container').style.display = 'block';
+    renderQuestions();
+    startTimer();
+}
+
+function renderQuestions() {
+    const wrapper = document.getElementById('questions-wrapper');
+    quizData.forEach((item, index) => {
+        const qDiv = document.createElement('div');
+        qDiv.className = 'question-card';
+        qDiv.id = `q-card-${index}`;
+        
+        let optionsHtml = '';
+        item.o.forEach((opt, oIdx) => {
+            const letter = String.fromCharCode(65 + oIdx);
+            optionsHtml += `
+                <label class="option-item" id="label-${index}-${letter}">
+                    <input type="radio" name="q${index}" value="${letter}">
+                    ${letter}) ${opt}
+                </label>`;
+        });
+
+        qDiv.innerHTML = `
+            <div class="question-text">${index + 1}. ${item.q}</div>
+            <div class="options-list">${optionsHtml}</div>
+            <div class="rationale" id="rationale-${index}">
+                <strong>Correct Answer: ${item.a}</strong><br>${item.r}
+            </div>
+        `;
+        wrapper.appendChild(qDiv);
+    });
+}
+
+function startTimer() {
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        let hours = Math.floor(timeLeft / 3600);
+        let minutes = Math.floor((timeLeft % 3600) / 60);
+        let seconds = timeLeft % 60;
+        document.getElementById('timer').innerText = 
+            `Time Remaining: ${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+        
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            submitQuiz();
+        }
+    }, 1000);
+}
+
+function checkProgress() {
+    quizData.forEach((item, index) => {
+        const selected = document.querySelector(`input[name="q${index}"]:checked`);
+        const card = document.getElementById(`q-card-${index}`);
+        
+        if (selected) {
+            if (selected.value === item.a) {
+                card.classList.add('correct');
+                card.classList.remove('incorrect');
+            } else {
+                card.classList.add('incorrect');
+                card.classList.remove('correct');
+            }
+        }
+    });
+}
+
+function submitQuiz() {
+    clearInterval(timerInterval);
+    let score = 0;
+    
+    quizData.forEach((item, index) => {
+        const selected = document.querySelector(`input[name="q${index}"]:checked`);
+        const card = document.getElementById(`q-card-${index}`);
+        const rat = document.getElementById(`rationale-${index}`);
+        
+        // Disable inputs
+        const inputs = document.getElementsByName(`q${index}`);
+        inputs.forEach(input => input.disabled = true);
+
+        if (selected) {
+            rat.style.display = 'block';
+            if (selected.value === item.a) {
+                score++;
+                card.classList.add('correct');
+            } else {
+                card.classList.add('incorrect');
+            }
+        } else {
+            // For unattempted, we reveal rationale anyway on final submit
+            rat.style.display = 'block';
+        }
+    });
+
+    const percentage = ((score / quizData.length) * 100).toFixed(1);
+    const dashboard = document.getElementById('results-dashboard');
+    dashboard.style.display = 'block';
+    document.getElementById('score-display').innerText = `${score} / ${quizData.length} (${percentage}%)`;
+    window.scrollTo(0,0);
+}
+</script>
+
+</body>
+</html>
