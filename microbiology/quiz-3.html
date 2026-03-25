@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microbiology: Viruses Interactive Exam</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        #timer { position: fixed; top: 10px; right: 10px; background: #e74c3c; color: white; padding: 10px 20px; border-radius: 5px; font-weight: bold; display: none; z-index: 1000; }
+        .question { margin-bottom: 25px; padding: 15px; border-bottom: 1px solid #eee; display: none; }
+        .options { margin-top: 10px; }
+        label { display: block; margin-bottom: 8px; cursor: pointer; padding: 5px; border-radius: 4px; transition: 0.2s; }
+        label:hover { background-color: #f0f0f0; }
+        input[type="radio"] { margin-right: 10px; }
+        .btn-container { text-align: center; margin-top: 20px; }
+        button { padding: 12px 25px; font-size: 16px; cursor: pointer; border: none; border-radius: 4px; transition: 0.3s; margin: 5px; }
+        #start-btn { background-color: #27ae60; color: white; }
+        #submit-btn { background-color: #3498db; color: white; display: none; }
+        #check-btn { background-color: #f39c12; color: white; display: none; }
+        .feedback { margin-top: 10px; font-weight: bold; display: none; }
+        .correct { color: #27ae60; }
+        .incorrect { color: #e74c3c; }
+        .rationale { font-size: 0.85em; color: #666; font-style: italic; margin-top: 5px; display: none; background: #f9f9f9; padding: 8px; border-left: 3px solid #3498db; }
+        #results-summary { text-align: center; font-size: 1.2em; margin-bottom: 20px; display: none; font-weight: bold; color: #2c3e50; }
+    </style>
+</head>
+<body>
+
+<div id="timer">Time Remaining: 02:00:00</div>
+
+<div class="container">
+    <h1>Microbiology: Viruses Exam</h1>
+    
+    <div id="intro-screen" style="text-align: center; padding: 40px;">
+        <p>This exam consists of 50 Multiple Choice Questions regarding Viruses.</p>
+        <p><strong>Duration:</strong> 2 Hours</p>
+        <button id="start-btn" onclick="startQuiz()">Start the Quiz</button>
+    </div>
+
+    <div id="results-summary"></div>
+    <form id="quiz-form"></form>
+
+    <div class="btn-container">
+        <button id="check-btn" onclick="checkInterim()">Check Progress</button>
+        <button id="submit-btn" onclick="finishQuiz()">Submit Final Exam</button>
+    </div>
+</div>
+
+<script>
+const quizData = [
+    { q: "Before the 1930s, researchers referred to infectious agents by which Latin phrase?", options: ["Contagium vivum fluidum (contagious fluid)", "Contagium vivum fluidum (invisible poison)", "Virus (intracellular parasite)", "Virion (fully developed particle)"], a: 0, r: "Dimitri Ivanovsky and Martinus Beijerinck used this term to describe the 'filterable' nature of the agent." },
+    { q: "Viruses are obligatory intracellular parasites. This means:", options: ["They synthesize proteins in artificial media", "They absolutely require living host cells to multiply", "They possess metabolic machinery but use host energy", "They live outside cells but draw nutrients from blood"], a: 1, r: "Viruses lack ribosomes and metabolic enzymes, making them entirely dependent on a host cell's machinery." },
+    { q: "Which statement accurately describes viral nucleic acid?", options: ["Contains both DNA and RNA", "Encoded by either DNA or RNA, but never both", "Exclusively uses dsDNA", "Lacks nucleic acids entirely"], a: 1, r: "A fundamental characteristic of viruses is that they contain only one type of nucleic acid." },
+    { q: "Why must a virus take over host metabolic machinery?", options: ["To synthesize artificial media", "To store ATP in mitochondria", "Because they have few/no enzymes for protein synthesis and ATP generation", "To prevent immune response"], a: 2, r: "Viruses are essentially genetic packages that hijack host ribosomes and enzymes to replicate." },
+    { q: "What is 'host range'?", options: ["Distance traveled between hosts", "Spectrum of host cells a virus can infect", "Size difference between virus and host", "Number of virions produced"], a: 1, r: "Host range is determined by specific host attachment sites and cellular factors." },
+    { q: "Which is true regarding viral host specificity?", options: ["Infect many species simultaneously", "Never cross species barriers", "Most infect specific cell types of one species", "Bacteriophages infect vertebrates"], a: 2, r: "Viruses usually exhibit high specificity due to the requirement of matching surface receptors." },
+    { q: "Viruses that infect bacteria are called:", options: ["Virions", "Prions", "Bacteriophages", "Prophages"], a: 2, r: "Bacteriophages (or phages) are specialized viruses that exclusively target bacteria." },
+    { q: "Typical size range for viruses:", options: ["2 to 10 nm", "20 to 1000 nm", "1000 to 3000 nm", "10 to 100 micrometers"], a: 1, r: "Most viruses are significantly smaller than bacteria, ranging from 20nm up to 1000nm (for giant viruses)." },
+    { q: "Which virus is similar in size to very small bacteria?", options: ["Poliovirus", "Rabies virus", "Vaccinia virus", "Tobacco mosaic virus"], a: 2, r: "Vaccinia virus is one of the largest viruses, roughly 300nm, comparable to mycoplasma bacteria." },
+    { q: "A fully developed infectious viral particle outside a host is a:", options: ["Capsomere", "Prophage", "Virion", "Capsid"], a: 2, r: "A virion is the complete, infective form of a virus outside a host cell, with a core of RNA or DNA and a capsid." },
+    { q: "Viral nucleic acid can be:", options: ["Exclusively ssRNA or ssDNA", "Single- or double-stranded; linear or circular", "Always circular dsDNA", "Hybrid DNA-RNA strands only"], a: 1, r: "Viral genomes show great diversity including ssDNA, dsDNA, ssRNA, and dsRNA." },
+    { q: "Which virus contains 8 segmented chromosomes?", options: ["Human herpes virus", "Influenza virus", "Adenovirus", "Ebola virus"], a: 1, r: "The influenza virus genome consists of eight separate segments of negative-sense RNA." },
+    { q: "What determines the structure of a viral capsid?", options: ["Host cell lipids", "Viral nucleic acid", "Environmental pH", "Carbohydrate-protein complexes"], a: 1, r: "The viral genome encodes the protein subunits that self-assemble into the capsid structure." },
+    { q: "Capsids are made of protein subunits called:", options: ["Envelopes", "Virions", "Capsomeres", "Spikes"], a: 2, r: "Capsomeres are the individual protein building blocks that aggregate to form the capsid." },
+    { q: "Viral envelopes consist of:", options: ["Lipids, proteins, and carbohydrates", "dsRNA and lipids", "Spikes only", "Nucleases and viral enzymes"], a: 0, r: "Envelopes are typically derived from host cell membranes but modified with viral proteins." },
+    { q: "Viral spikes are composed of:", options: ["Lipid bilayers", "Carbohydrate-protein complexes", "Naked nucleic acids", "Single capsomeres"], a: 1, r: "Spikes are glycoprotein complexes that protrude from the envelope." },
+    { q: "One primary function of viral spikes is to:", options: ["Digest host DNA", "Protect from nucleases", "Attach to host cells", "Synthesize viral ATP"], a: 2, r: "Spikes serve as ligands that bind to specific receptors on the host cell surface." },
+    { q: "In nonenveloped viruses, the capsid:", options: ["Synthesizes lipids", "Protects nucleic acid and aids attachment", "Allows survival in artificial media", "Acts as reverse transcriptase"], a: 1, r: "The protein coat (capsid) provides both protection and the mechanism for cell entry in naked viruses." },
+    { q: "Viral structures were revealed mainly by:", options: ["Light microscopy/PCR", "Electron microscopy/X-ray crystallography", "Biochemical assays/ultracentrifugation", "Tissue culture/animal inoculation"], a: 1, r: "Because viruses are sub-microscopic, high-resolution imaging like EM is required to see them." },
+    { q: "Helical viruses are characterized by:", options: ["Icosahedral symmetry", "Nucleic acid within a hollow, helical capsid", "Spherical lipid-rich envelopes", "Polyhedral head and helical tail"], a: 1, r: "The capsomeres are arranged in a spiral around the nucleic acid core." },
+    { q: "Which viruses are helical?", options: ["Adenovirus and Poliovirus", "Rabies and Ebola", "Influenza and Human herpes virus", "Bacteriophages and Tobacco mosaic virus"], a: 1, r: "Rabies and Ebola are classic examples of viruses with helical symmetry (bullet and filament shapes)." },
+    { q: "An icosahedron has:", options: ["12 triangular faces and 20 corners", "20 triangular faces and 12 corners", "A hollow cylinder", "20 lipid layers"], a: 1, r: "This is a regular polyhedron—the most efficient way to assemble a shell from identical subunits." },
+    { q: "Classic polyhedral viruses include:", options: ["Rabies and Ebola", "Influenza and Herpes virus", "Adenovirus and Poliovirus", "Bacteriophages and HIV"], a: 2, r: "Adenovirus and Poliovirus are non-enveloped icosahedral (polyhedral) viruses." },
+    { q: "Which is an enveloped helical virus?", options: ["Human herpes virus", "Influenza virus", "Poliovirus", "Tobacco mosaic virus"], a: 1, r: "Influenza has a helical nucleocapsid surrounded by a flexible lipid envelope." },
+    { q: "Human herpes virus is classified as:", options: ["Naked helical", "Enveloped helical", "Enveloped polyhedral (icosahedral)", "Complex"], a: 2, r: "Herpesviruses have an icosahedral capsid surrounded by a tegument and a lipid envelope." },
+    { q: "Bacteriophages are complex viruses because:", options: ["Capsid is helical; tail is polyhedral", "They lack a capsid", "Head is polyhedral; tail sheath is helical", "They have multiple heads"], a: 2, r: "Complex viruses like T-even phages combine different symmetries in one particle." },
+    { q: "In a bacteriophage, nucleic acid is located in the:", options: ["Tail fibers", "Tail sheath", "Base plate", "Polyhedral head"], a: 3, r: "The head (capsid) protects the DNA, while the tail acts as an injection syringe." },
+    { q: "Symptom-based classification is unacceptable because:", options: ["Viruses cause no symptoms", "Viruses infect only one organ", "The same virus can cause multiple diseases", "All viruses undergo lysogeny"], a: 2, r: "Modern classification relies on genetics and structure rather than clinical presentation." },
+    { q: "The taxonomic suffix for viral family is:", options: ["-virus", "-ales", "-viridae", "-phage"], a: 2, r: "Example: Retroviridae, Herpesviridae." },
+    { q: "The suffix for a viral genus is:", options: ["-viridae", "-ales", "-virus", "-phage"], a: 2, r: "Example: Simplexvirus, Lentivirus." },
+    { q: "Viral species share:", options: ["Same capsid symmetry", "Same genetic information and ecological niche", "Same symptoms", "Same geographic origin"], a: 1, r: "A viral species is a group of viruses sharing the same genetic makeup and host range." },
+    { q: "Viral subspecies are designated by:", options: ["Latin phrases", "Disease name", "Numbers (e.g., HIV-1)", "Discoverer’s name"], a: 2, r: "Subspecies are used to differentiate variants like HIV-1 vs HIV-2." },
+    { q: "The Baltimore classification is based on:", options: ["Capsid shape", "Envelope lipids", "How viral mRNA is produced", "Species barrier crossing"], a: 2, r: "David Baltimore's system groups viruses by their genome type and mRNA synthesis pathway." },
+    { q: "Certain RNA viruses convert +ssRNA → dsDNA using:", options: ["Reverse transcription", "Direct translation", "Cell lysis", "Ribosomal hijacking"], a: 0, r: "Retroviruses use the enzyme Reverse Transcriptase to turn RNA into DNA." },
+    { q: "Viral genomes typically encode:", options: ["Host ribosomes", "Capsid proteins", "Host ATP enzymes", "Culture media enzymes"], a: 1, r: "Viruses must carry the blueprint for their own structural proteins (capsomeres)." },
+    { q: "Components supplied entirely by host cells include:", options: ["Viral mRNA and capsomeres", "Reverse transcriptase and spikes", "Ribosomes, tRNA, ATP", "Viral DNA and envelopes"], a: 2, r: "Viruses lack any metabolic capability and must use the host's translation machinery and energy." },
+    { q: "Larger virions may contain:", options: ["Host ribosomes", "Mitochondria", "One or a few enzymes or mRNA", "Pre-assembled heads"], a: 2, r: "While rare, some viruses carry specific enzymes (like polymerases) needed to start replication." },
+    { q: "What is the usual fate of a host cell after massive viral replication?", options: ["Survives indefinitely", "Divides normally", "Dies, often by lysis", "Converts virions into prophages"], a: 2, r: "Accumulation of virions and resource depletion usually leads to cell death and rupture." },
+    { q: "Phage DNA is approximately what percentage of the E. coli genome?", options: ["1%", "6%", "50%", "100%"], a: 0, r: "Phage genomes are very small compared to the massive circular chromosome of a bacterium." },
+    { q: "Correct order of the lytic cycle is:", options: ["Penetration-Attachment-Maturation-Biosynthesis-Release", "Attachment-Biosynthesis-Penetration-Maturation-Release", "Attachment-Penetration-Biosynthesis-Maturation-Release", "Adsorption-Assembly-Biosynthesis-Entry-Lysis"], a: 2, r: "Standard sequence: Attach -> Enter -> Build components -> Assemble -> Exit." },
+    { q: "During the 'Penetration/Entry' stage of the lytic cycle:", options: ["The virus attaches", "Components are synthesized", "New particles assemble", "Viral DNA is injected"], a: 3, r: "In phages, the protein coat stays outside while the genome is 'injected' through the cell wall." },
+    { q: "A phage integrated into bacterial DNA is called a:", options: ["Virion", "Prophage", "Capsomere", "Naked virus"], a: 1, r: "During lysogeny, the viral DNA (prophage) remains latent within the host genome." },
+    { q: "Difference in host DNA fate between lytic and lysogenic cycles:", options: ["Lytic: host DNA intact; Lysogenic: host DNA hydrolyzed", "Lytic: host DNA hydrolyzed; Lysogenic: host DNA intact", "Both hydrolyze host DNA", "Neither affects host DNA"], a: 1, r: "Lytic phages actively destroy host DNA to ensure all resources go to viral production." },
+    { q: "Viral DNA replication in lytic vs lysogenic cycles:", options: ["Lytic: with host replication; Lysogenic: independent", "Both depend on host division", "Lytic: independent; Lysogenic: with host replication", "Lytic takes long; Lysogenic is fast"], a: 2, r: "Lytic is immediate/independent; Lysogenic hides in the host and replicates as the cell divides." },
+    { q: "Cellular disruption in lytic vs lysogenic cycles:", options: ["Lytic completely overtakes mechanism; lysogenic disturbs less", "Lysogenic overtakes; lytic disturbs less", "Both shut down host mechanisms at attachment", "Neither disturbs the host"], a: 0, r: "Lytic infection is aggressive and destructive; lysogenic is a state of coexistence." },
+    { q: "Why can’t viruses be grown on artificial media?", options: ["They lack flagella", "They require living host cells", "Agar pH destroys nucleic acid", "Spikes cannot attach to agar"], a: 1, r: "Being obligatory parasites, they need the machinery of a living cell to function." },
+    { q: "Accepted methods for virus cultivation include:", options: ["Artificial broth, blood agar, tissue cultures", "Animals, embryonated eggs, tissue cultures", "X-ray, electron microscopy, PCR", "Lytic induction, culture media, capsid synthesis"], a: 1, r: "These provide the living biological systems viruses require for growth." },
+    { q: "Outside their hosts, viruses survive as:", options: ["Virions", "Algae", "Protozoa", "Bacteria"], a: 0, r: "The virion is the inert, extracellular state of the virus." },
+    { q: "The viral genome is packaged into a structure made primarily of:", options: ["Protein", "Carbohydrate", "Fats", "Lipids"], a: 0, r: "The capsid is a protein shell that protects the genetic material." },
+    { q: "Most bacteriophages exhibit which capsid symmetry?", options: ["Helical", "Icosahedral", "Complex", "Spherical enveloped"], a: 2, r: "Phages typically have specialized heads and tails, making them 'Complex' in structure." }
+];
+
+let timerInterval;
+let timeRemaining = 7200; // 2 hours in seconds
+
+function startQuiz() {
+    document.getElementById('intro-screen').style.display = 'none';
+    document.getElementById('timer').style.display = 'block';
+    document.getElementById('submit-btn').style.display = 'inline-block';
+    document.getElementById('check-btn').style.display = 'inline-block';
+    
+    const form = document.getElementById('quiz-form');
+    quizData.forEach((item, index) => {
+        const qDiv = document.createElement('div');
+        qDiv.className = 'question';
+        qDiv.id = `q-block-${index}`;
+        qDiv.style.display = 'block';
+        
+        let optionsHtml = '';
+        item.options.forEach((opt, i) => {
+            optionsHtml += `
+                <label>
+                    <input type="radio" name="q${index}" value="${i}"> ${opt}
+                </label>
+            `;
+        });
+
+        qDiv.innerHTML = `
+            <p><strong>${index + 1}. ${item.q}</strong></p>
+            <div class="options">${optionsHtml}</div>
+            <div id="feedback-${index}" class="feedback"></div>
+            <div id="rationale-${index}" class="rationale">Rationale: ${item.r}</div>
+        `;
+        form.appendChild(qDiv);
+    });
+
+    startTimer();
+}
+
+function startTimer() {
+    timerInterval = setInterval(() => {
+        timeRemaining--;
+        let hours = Math.floor(timeRemaining / 3600);
+        let minutes = Math.floor((timeRemaining % 3600) / 60);
+        let seconds = timeRemaining % 60;
+        
+        document.getElementById('timer').innerText = 
+            `Time Remaining: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        
+        if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            finishQuiz();
+        }
+    }, 1000);
+}
+
+function checkInterim() {
+    quizData.forEach((item, index) => {
+        const selected = document.querySelector(`input[name="q${index}"]:checked`);
+        const feedback = document.getElementById(`feedback-${index}`);
+        const rationale = document.getElementById(`rationale-${index}`);
+        
+        if (selected) {
+            feedback.style.display = 'block';
+            rationale.style.display = 'block';
+            if (parseInt(selected.value) === item.a) {
+                feedback.innerHTML = "✓ Correct";
+                feedback.className = "feedback correct";
+            } else {
+                feedback.innerHTML = `✗ Incorrect. Correct answer: ${item.options[item.a]}`;
+                feedback.className = "feedback incorrect";
+            }
+        }
+    });
+}
+
+function finishQuiz() {
+    clearInterval(timerInterval);
+    checkInterim();
+    window.scrollTo(0, 0);
+    
+    let score = 0;
+    quizData.forEach((item, index) => {
+        const selected = document.querySelector(`input[name="q${index}"]:checked`);
+        if (selected && parseInt(selected.value) === item.a) score++;
+    });
+
+    const summary = document.getElementById('results-summary');
+    summary.style.display = 'block';
+    summary.innerHTML = `Quiz Completed!<br>Final Score: ${score} / ${quizData.length} (${(score/quizData.length*100).toFixed(1)}%)`;
+    
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('check-btn').disabled = true;
+}
+</script>
+
+</body>
+</html>
