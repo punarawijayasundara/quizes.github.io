@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metabolism & Biochemistry Comprehensive Exam</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #3498db;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --light: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light);
+            color: var(--primary);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 2px solid var(--accent);
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+        }
+
+        #timer-bar {
+            position: sticky;
+            top: 0;
+            background: var(--primary);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            z-index: 1000;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .intro-screen {
+            text-align: center;
+            padding: 50px 0;
+        }
+
+        .quiz-content {
+            display: none;
+        }
+
+        .question-block {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .question-text {
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+
+        .options label {
+            display: block;
+            padding: 10px;
+            margin: 5px 0;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .options label:hover {
+            background: #f0f0f0;
+        }
+
+        .options input {
+            margin-right: 10px;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+            font-size: 0.95em;
+        }
+
+        .rationale {
+            font-size: 0.85em;
+            color: #555;
+            margin-top: 5px;
+            display: block;
+            font-style: italic;
+        }
+
+        .correct { border: 2px solid var(--success) !important; background-color: #e8f5e9 !important; }
+        .incorrect { border: 2px solid var(--danger) !important; background-color: #ffebee !important; }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            transition: opacity 0.2s;
+        }
+
+        .btn-start { background: var(--success); color: white; }
+        .btn-check { background: var(--accent); color: white; margin-right: 10px; }
+        .btn-submit { background: var(--primary); color: white; }
+
+        #results {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            background: var(--primary);
+            color: white;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+
+        .math { font-style: italic; font-family: "Times New Roman", serif; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Metabolism & Biochemistry</h1>
+        <p>Comprehensive Undergraduate Exam</p>
+    </header>
+
+    <div id="timer-bar">Time Remaining: <span id="time">02:00:00</span></div>
+
+    <div id="intro" class="intro-screen">
+        <h3>Exam Instructions</h3>
+        <p>Total Questions: 60 | Time Limit: 2 Hours</p>
+        <p>You can check individual answers as you go, or submit everything at the end.</p>
+        <button class="btn btn-start" onclick="startQuiz()">Start the Quiz</button>
+    </div>
+
+    <div id="quiz-ui" class="quiz-content">
+        <form id="quizForm">
+            <div id="questions-container"></div>
+            
+            <div style="margin-top: 40px; border-top: 2px solid #eee; padding-top: 20px;">
+                <button type="button" class="btn btn-check" onclick="checkAttempted()">Check Current Answers</button>
+                <button type="button" class="btn btn-submit" onclick="submitQuiz()">Submit Final Exam</button>
+            </div>
+        </form>
+
+        <div id="results">
+            <h2>Exam Completed</h2>
+            <p id="score-text" style="font-size: 1.5em;"></p>
+            <button class="btn btn-start" onclick="location.reload()">Restart Exam</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { q: "A metabolic pathway that involves both catabolic and anabolic processes, such as the Krebs cycle, is termed:", o: ["Amphibolic", "Amphipathic", "Intermediary", "Tertiary"], a: 0, r: "An amphibolic pathway is a biochemical pathway that includes both anabolic and catabolic processes, such as the Krebs Cycle." },
+        { q: "Which of the following describes the degradative process that breaks down complex molecules into simpler ones (like CO2 and NH3) while releasing energy?", o: ["Anabolism", "Gluconeogenesis", "Catabolism", "Tautomerization"], a: 2, r: "Catabolism is the degradative process concerned with the breakdown of complex molecules to simpler ones, e.g., CO2, NH3, with a concomitant release of energy." },
+        { q: "Isomers that differ in their spatial configuration around only one specific carbon atom are known as:", o: ["Enantiomers", "Epimers", "Structural isomers", "Anomers"], a: 1, r: "Epimers are isomers that differ in configuration only around one specific carbon atom." },
+        { q: "The oxidation of the terminal alcohol group (CH2OH) of glucose results in the formation of:", o: ["Gluconic acid", "Glucuronic acid", "Glucitol", "Sorbitol"], a: 1, r: "Oxidation of the terminal alcohol group (CH2OH) leads to the production of glucuronic acid." },
+        { q: "Which of the following correctly describes the composition and linkage of the disaccharide trehalose?", o: ["Two α-glucose units linked α(1-4)", "α-glucose and β-fructose linked α(1-2)", "α-glucose and β-glucose with an α(1-β1) linkage", "Two β-glucose units linked β(1-4)"], a: 2, r: "Trehalose consists of an α-glucose and a β-glucose with an α(1-β1) linkage." },
+        { q: "Which glycosaminoglycan is unique because it is the only one that does not contain any uronic acid?", o: ["Heparin", "Hyaluronates", "Dermatan sulfates", "Keratan sulfates"], a: 3, r: "Keratan sulfates are the only glycosaminoglycan which does not contain any uronic acid." },
+        { q: "Salivary α-amylase specifically cleaves which bonds during the mastication of starch?", o: ["Internal α-1,4-glycosidic bonds only", "Terminal α-1,4-glycosidic bonds only", "Both α-1,4 and α-1,6-glycosidic bonds", "Only α-1,6-glycosidic bonds"], a: 0, r: "During mastication, salivary α-amylase acts on starch randomly and cleaves only internal α-1,4-glycosidic bonds." },
+        { q: "Why does the digestion of carbohydrates halt completely in the stomach?", o: ["Pancreatic enzymes are not yet secreted.", "Salivary α-amylase is inactivated by high gastric acidity.", "The stomach absorbs carbohydrates before digestion can continue.", "Gastric juice lacks water."], a: 1, r: "Salivary α-amylase, which has an optimum pH of 7, is inactivated by the high acidity in the stomach, stopping carbohydrate digestion." },
+        { q: "Which of the following intestinal enzymes is responsible for acting on α-limit dextrins?", o: ["Glucoamylase", "Trehalase", "Isomaltase", "Lactase"], a: 2, r: "Isomaltase acts on α-limit dextrins during brush-border digestion." },
+        { q: "What is the correct physiological order of absorption rates for monosaccharides from fastest to slowest?", o: ["Glucose > Galactose > Fructose", "Galactose > Glucose > Fructose", "Fructose > Glucose > Galactose", "Galactose > Fructose > Glucose"], a: 1, r: "The absorption rate for monosaccharides is Galactose > Glucose > Fructose." },
+        { q: "Which glucose transporter is abundant in erythrocytes and the brain?", o: ["GLUT-1", "GLUT-2", "GLUT-4", "GLUT-5"], a: 0, r: "GLUT-1 is an insulin-independent transport system that is abundant in erythrocytes, hepatocytes, and the brain." },
+        { q: "Oral Rehydration Therapy (ORT) relies on the principle that the intestinal absorption of sodium is facilitated by the presence of:", o: ["Potassium", "Chloride", "Fructose", "Glucose"], a: 3, r: "Intestinal absorption of sodium is facilitated by the presence of glucose, which is the basis for Oral Rehydration Therapy." },
+        { q: "The insulin-dependent transport system utilizing GLUT-4 is predominantly found in which tissues?", o: ["Liver and brain", "Erythrocytes and kidneys", "Skeletal muscle and adipose tissue", "Intestinal mucosa"], a: 2, r: "GLUT-4 is an insulin-dependent transport system that is abundant in skeletal muscle and adipose tissue." },
+        { q: "Fructose is absorbed into the bloodstream via which specific transport mechanism?", o: ["Simple diffusion", "Secondary active transport", "Facilitated diffusion mediated by a carrier", "Primary active transport"], a: 2, r: "Fructose is transported by facilitated diffusion mediated by a carrier, an independent process of Na+ transport." },
+        { q: "In lactose intolerance, the unabsorbed lactose draws water from the intestinal mucosa by osmosis. What clinical symptom does this primarily cause?", o: ["Flatulence", "Constipation", "Osmotic diarrhea", "Lactosuria"], a: 2, r: "Unabsorbed disaccharides like lactose draw water from the intestinal mucosa by osmosis and cause osmotic diarrhea." },
+        { q: "Which enzyme catalyzes the rate-limiting and committed step of glycolysis?", o: ["Hexokinase", "Phosphoglucose isomerase", "Phosphofructokinase-1 (PFK-1)", "Pyruvate kinase"], a: 2, r: "The irreversible phosphorylation reaction catalyzed by phosphofructokinase-1 (PFK-1) is the rate-limiting and committed step of glycolysis." },
+        { q: "Glucokinase differs from hexokinase in that glucokinase:", o: ["Has a low Km (high affinity) for glucose", "Is allosterically inhibited by glucose-6-phosphate", "Is inducible by insulin and has a high Km for glucose", "Is abundant in all body tissues"], a: 2, r: "Glucokinase is inducible by insulin and has a high Km (low affinity) for glucose, operating in the liver and pancreatic β cells." },
+        { q: "Aldolase cleaves fructose 1,6-bisphosphate into which two three-carbon compounds?", o: ["Pyruvate and lactate", "Glyceraldehyde 3-phosphate and dihydroxyacetone phosphate", "3-phosphoglycerate and 2-phosphoglycerate", "Phosphoenolpyruvate and pyruvate"], a: 1, r: "Fructose 1,6-bisphosphate is split into two three-carbon compounds: glyceraldehyde 3-phosphate and dihydroxyacetone phosphate by the enzyme aldolase." },
+        { q: "Which enzyme in glycolysis catalyzes the first oxidation-reduction reaction and produces NADH?", o: ["Glyceraldehyde 3-phosphate dehydrogenase", "Phosphoglycerate kinase", "Enolase", "Lactate dehydrogenase"], a: 0, r: "The conversion of glyceraldehyde 3-phosphate to 1,3-bisphosphoglycerate by glyceraldehyde 3-phosphate dehydrogenase is the first oxidation-reduction reaction of glycolysis, forming NADH." },
+        { q: "Substrate-level phosphorylation occurs in glycolysis during the conversion of 1,3-bisphosphoglycerate to:", o: ["Fructose 1,6-bisphosphate", "2-phosphoglycerate", "3-phosphoglycerate", "Phosphoenolpyruvate"], a: 2, r: "Phosphoglycerate kinase acts on 1,3-bisphosphoglycerate to synthesize ATP and form 3-phosphoglycerate, an example of substrate-level phosphorylation." },
+        { q: "Under anaerobic conditions, pyruvate is reduced to lactate to regenerate which essential coenzyme for continued glycolysis?", o: ["ATP", "NADH", "NAD+", "FADH2"], a: 2, r: "Under anaerobic conditions, pyruvate is reduced to lactate by NADH, which regenerates NAD+ for continued glycolysis." },
+        { q: "In the Cori cycle, lactate produced by exercising muscle is transported to the liver, where it is converted into:", o: ["Amino acids", "Ketone bodies", "Glucose", "Urea"], a: 2, r: "In the Cori cycle, lactate diffuses into the bloodstream and is used by the liver to make glucose via gluconeogenesis." },
+        { q: "Elevated concentrations of lactate in the plasma due to circulatory collapse or shock is termed:", o: ["Diabetic ketoacidosis", "Lactic acidosis", "Hypoglycemia", "Hyperuricemia"], a: 1, r: "Elevated concentrations of lactate in the plasma during a circulatory collapse or shock is termed lactic acidosis." },
+        { q: "Which of the following is an allosteric inhibitor of phosphofructokinase-1 (PFK-1)?", o: ["AMP", "Fructose 2,6-bisphosphate", "ATP", "Insulin"], a: 2, r: "PFK-1 is inhibited allosterically by elevated levels of ATP and citrate." },
+        { q: "Pyruvate dehydrogenase complex deficiency primarily affects which organ due to its heavy reliance on the TCA cycle?", o: ["Liver", "Kidneys", "Skeletal muscle", "Brain"], a: 3, r: "Pyruvate dehydrogenase complex deficiency causes problems particularly for the brain, which relies on the TCA cycle for most of its energy." },
+        { q: "In the citric acid cycle, citrate synthase catalyzes the irreversible condensation of acetyl CoA with which molecule?", o: ["Malate", "Succinate", "Oxaloacetate", "α-ketoglutarate"], a: 2, r: "The joining of oxaloacetate and acetyl CoA to form citric acid is an irreversible reaction catalyzed by citrate synthase." },
+        { q: "Which TCA cycle enzyme is an Fe-S protein that isomerizes citrate to isocitrate?", o: ["Aconitase", "Fumarase", "Succinyl-CoA synthetase", "Malate dehydrogenase"], a: 0, r: "Citrate is isomerized to isocitrate by aconitase, an Fe-S protein, in a reversible two-step process." },
+        { q: "The first oxidative decarboxylation step in the TCA cycle is catalyzed by:", o: ["Citrate synthase", "Isocitrate dehydrogenase", "α-ketoglutarate dehydrogenase", "Pyruvate dehydrogenase"], a: 1, r: "Isocitrate dehydrogenase catalyzes the first oxidation-reduction reaction in the cycle, oxidatively decarboxylating isocitrate to α-ketoglutarate." },
+        { q: "Which reaction in the citric acid cycle yields a molecule of GTP via substrate-level phosphorylation?", o: ["Isocitrate to α-ketoglutarate", "α-ketoglutarate to succinyl-CoA", "Succinyl-CoA to succinate", "Succinate to fumarate"], a: 2, r: "Succinyl-CoA is cleaved to form succinate by succinyl-CoA synthetase, accompanying the phosphorylation of GDP to GTP." },
+        { q: "Succinate dehydrogenase is unique among TCA cycle enzymes because it is:", o: ["The only enzyme that uses NAD+ as an electron acceptor.", "Located in the mitochondrial membrane rather than the matrix.", "The only enzyme that catalyzes a substrate-level phosphorylation.", "Found exclusively in the cytosol."], a: 1, r: "Succinate dehydrogenase is uniquely located in the mitochondrial membrane, while the other enzymes are in the matrix." },
+        { q: "The oxidation of one molecule of acetyl CoA through the citric acid cycle yields a total of how many ATP equivalents?", o: ["2", "10", "12", "24"], a: 2, r: "The total yield of ATP from the oxidation of one acetyl CoA in the TCA cycle is 12 ATP (3 NADH = 9 ATP, 1 FADH2 = 2 ATP, 1 GTP = 1 ATP)." },
+        { q: "Which of the following is NOT an inhibitor of citrate synthase?", o: ["ATP", "NADH", "ADP", "Succinyl CoA"], a: 2, r: "Citrate synthase is inhibited by ATP, NADH, acetyl CoA, and succinyl CoA, not ADP." },
+        { q: "Reactions that replenish intermediates of the citric acid cycle are termed:", o: ["Amphibolic", "Anaplerotic", "Catabolic", "Isomerization"], a: 1, r: "Reactions that generate intermediates of the cycle are called anaplerotic reactions." },
+        { q: "Gluconeogenesis is the formation of new glucose molecules primarily in which organ during an overnight fast?", o: ["Skeletal muscle", "Brain", "Liver", "Kidneys"], a: 2, r: "During an overnight fast, approximately 90% of gluconeogenesis occurs in the liver." },
+        { q: "Which of the following cannot be used as a precursor for gluconeogenesis?", o: ["Lactate", "Glycerol", "α-keto acids", "Acetyl CoA"], a: 3, r: "Gluconeogenic precursors include intermediates of glycolysis/TCA cycle, glycerol, lactate, and α-keto acids, but not acetyl-CoA." },
+        { q: "The irreversible conversion of pyruvate to oxaloacetate in gluconeogenesis is catalyzed by:", o: ["Pyruvate kinase", "Pyruvate carboxylase", "PEP carboxykinase", "Malate dehydrogenase"], a: 1, r: "Pyruvate is activated and transferred by pyruvate carboxylase to generate oxaloacetate in gluconeogenesis." },
+        { q: "The enzyme PEP carboxykinase requires the hydrolysis of which molecule to drive the conversion of oxaloacetate to PEP?", o: ["ATP", "UTP", "CTP", "GTP"], a: 3, r: "Oxaloacetate is decarboxylated and phosphorylated to PEP by PEP-carboxykinase, driven by the hydrolysis of GTP." },
+        { q: "Which enzyme in gluconeogenesis bypasses the irreversible phosphofructokinase-1 reaction of glycolysis?", o: ["Fructose 1,6-bisphosphatase", "Glucose 6-phosphatase", "Phosphohexose isomerase", "Aldolase"], a: 0, r: "Hydrolysis of fructose 1,6-bisphosphate by fructose 1,6-bisphosphatase bypasses the irreversible phosphofructokinase-1 reaction." },
+        { q: "Fructose 1,6-bisphosphatase is allosterically inhibited by:", o: ["ATP", "AMP", "Citrate", "Glucagon"], a: 1, r: "Fructose 1,6-bisphosphatase is inhibited by AMP, a compound that activates phosphofructokinase-1, resulting in reciprocal regulation." },
+        { q: "Which enzyme is present in the liver and kidney but absent in muscle, allowing them to release free glucose into the blood?", o: ["Hexokinase", "Glucokinase", "Glucose 6-phosphatase", "Glycogen phosphorylase"], a: 2, r: "The liver and kidney are the only organs that release free glucose, facilitated by the enzyme glucose 6-phosphatase." },
+        { q: "How does the hormone glucagon regulate gluconeogenesis?", o: ["It increases the synthesis of glucokinase.", "It lowers the level of fructose 1,6-bisphosphate, activating fructose 1,6-bisphosphatase.", "It allosterically activates phosphofructokinase-1.", "It promotes the storage of glycogen in the liver."], a: 1, r: "Glucagon lowers the level of fructose 1,6-bisphosphate, activating fructose 1,6-bisphosphatase and inhibiting phosphofructokinase-1." },
+        { q: "Which molecule acts as an allosteric activator of hepatic pyruvate carboxylase during fasting?", o: ["ATP", "AMP", "Acetyl CoA", "Lactate"], a: 2, r: "Allosteric activation of hepatic pyruvate carboxylase by acetyl CoA occurs during fasting." },
+        { q: "The formation of a glycosidic bond between two monosaccharides always results in the removal of:", o: ["Carbon dioxide", "Ammonia", "Water", "Hydrogen gas"], a: 2, r: "Every glycosidic bond results in one water molecule being removed through a process called condensation." },
+        { q: "Which heteropolysaccharide is the main rigid component of the bacterial cell wall?", o: ["Chitin", "Peptidoglycan", "Dextran", "Agar"], a: 1, r: "Peptidoglycan is the rigid component of the bacterial cell wall, built from alternating monosaccharide units." },
+        { q: "What is the structural function of the peptidoglycan sheath in bacteria?", o: ["It allows rapid cell division.", "It prevents cell swelling and lysis due to the osmotic entry of water.", "It serves as the primary energy store.", "It secretes lysozyme to kill other bacteria."], a: 1, r: "The peptidoglycan envelops the entire cell and prevents cell swelling and lysis due to the osmotic entry of water." },
+        { q: "Which glycosaminoglycan acts as an anticoagulant in the liver, lungs, and blood?", o: ["Hyaluronate", "Dermatan sulfate", "Chondroitin sulfate", "Heparin"], a: 3, r: "Heparin occurs in the liver, lungs, and blood, and acts as an anticoagulant and as an enzyme." },
+        { q: "The degradation of glycogen used as an energy source involves the removal of glucose units starting from the:", o: ["Reducing end", "Branch point", "Non-reducing end", "Chiral center"], a: 2, r: "When glycogen is used as an energy source, glucose units are removed one at a time from the non-reducing end." },
+        { q: "Why can't human enzymes digest cellulose?", o: ["Humans lack enzymes capable of breaking α(1-4) linkages.", "The highly acidic gastric juice destroys cellulose instantly.", "Cellulose contains β(1-4) linkages, which human enzymes cannot hydrolyze.", "Cellulose is too water-soluble to be digested."], a: 2, r: "The fibers in plant foods (like cellulose) are complex carbohydrates that cannot be digested by human enzymes, as cellulose is linked by β(1-4) linkages which human enzymes cannot cleave." },
+        { q: "During intense exercise, a drop in intracellular pH leading to muscle cramps is primarily caused by the accumulation of:", o: ["Pyruvate", "Acetyl CoA", "Lactate", "Oxaloacetate"], a: 2, r: "During intense exercise, NADH production exceeds respiratory capacity, reducing pyruvate to lactate; this lactate accumulates, causing a drop in intracellular pH and muscle cramps." },
+        { q: "Maltose, a product of starch breakdown, is composed of:", o: ["Two α-D-glucose units linked α(1-4)", "β-D-galactose and β-D-glucose", "α-D-glucose and β-D-fructose", "Two β-D-glucose units"], a: 0, r: "Maltose is composed of two α-D-glucose units, possessing an α(1-4) linkage." },
+        { q: "Raffinose, a naturally occurring oligosaccharide, consists of:", o: ["Two glucose and one fructose", "Three galactose units", "Galactose, glucose, and fructose", "Three glucose units"], a: 2, r: "Raffinose is a trisaccharide found in many plants consisting of galactose, glucose, and fructose." },
+        { q: "Dextran, rich in dental plaque, is a homopolysaccharide synthesized by bacteria and yeast that primarily consists of which linkages?", o: ["α(1-6)", "β(1-4)", "α(1-6)", "β(1-6)"], a: 0, r: "Dextran is made up of α(1-6) linked poly-D-glucose and is rich in dental plaque." },
+        { q: "Which complex carbohydrate component has a remarkable gel-forming property and is extracted from marine red algae?", o: ["Chitin", "Glycogen", "Peptidoglycan", "Agarose"], a: 3, r: "Agarose is the agar component extracted from marine red algae that possesses remarkable gel-forming properties." },
+        { q: "Hyaluronates are glycosaminoglycans that act as:", o: ["Anticoagulants", "Shock absorbants and lubricants in joints", "Precursors for bacterial cell walls", "Storage forms of energy in the liver"], a: 1, r: "Hyaluronates act as a lubricant and a shock absorbant in joints, present in synovial fluid and cartilage." },
+        { q: "Which of the following is true regarding secondary low lactase activity?", o: ["It is an inborn genetic defect present from birth.", "It is a natural decline in lactase activity with age.", "It results from intestinal lesions in conditions like Kwashiorkor or colitis.", "It causes an increase in sucrase activity."], a: 2, r: "Secondary low lactase activity results from intestinal lesions in conditions such as sprue, gastroenteritis, Kwashiorkor, and colitis." },
+        { q: "A defect in the Na+-glucose cotransporter carrier mechanism (SGLT-1) leads to the malabsorption of:", o: ["Glucose and Fructose", "Glucose and Galactose", "Fructose and Mannose", "Lactose and Sucrose"], a: 1, r: "Monosaccharide malabsorption of glucose and galactose occurs due to a defect in the Na+-glucose cotransporter carrier mechanism (SGLT-1)." },
+        { q: "The utilization of unabsorbed monosaccharides by intestinal bacteria produces gases such as:", o: ["Oxygen and nitrogen", "Hydrogen, methane, and carbon dioxide", "Ammonia and carbon monoxide", "Nitrogen and helium"], a: 1, r: "Utilization of monosaccharides by intestinal bacteria releases gases such as hydrogen, methane, and carbon dioxide." },
+        { q: "Under aerobic conditions, the continuous oxidation of NADH produced in glycolysis relies on:", o: ["The conversion of pyruvate to lactate.", "The electron transport chain.", "The direct synthesis of glucose via gluconeogenesis.", "The fermentation of sugars by intestinal bacteria."], a: 1, r: "Ongoing aerobic glycolysis requires the oxidation of most of the generated NADH by the electron transport chain." },
+        { q: "During the priming stage (energy investment phase) of glycolysis, how many ATP molecules are consumed per molecule of glucose?", o: ["1", "2", "3", "4"], a: 1, r: "The first three reactions correspond to the energy investment phase where phosphorylated intermediates are synthesized at the expense of 2 ATP." },
+        { q: "The enzyme enolase in glycolysis catalyzes a reaction that produces:", o: ["3-phosphoglycerate", "2-phosphoglycerate", "Phosphoenolpyruvate", "Pyruvate"], a: 2, r: "The high energy compound phosphoenolpyruvate is generated from 2-phosphoglycerate by the enzyme enolase." }
+    ];
+
+    let timer;
+    let timeLeft = 7200; // 2 hours
+
+    function startQuiz() {
+        document.getElementById('intro').style.display = 'none';
+        document.getElementById('quiz-ui').style.display = 'block';
+        document.getElementById('timer-bar').style.display = 'block';
+        
+        const container = document.getElementById('questions-container');
+        questions.forEach((q, i) => {
+            const div = document.createElement('div');
+            div.className = 'question-block';
+            div.id = `qblock-${i}`;
+            div.innerHTML = `
+                <div class="question-text">${i + 1}. ${q.q}</div>
+                <div class="options">
+                    ${q.o.map((opt, oi) => `
+                        <label>
+                            <input type="radio" name="q${i}" value="${oi}"> ${String.fromCharCode(65 + oi)}) ${opt}
+                        </label>
+                    `).join('')}
+                </div>
+                <div id="feedback-${i}" class="feedback"></div>
+            `;
+            container.appendChild(div);
+        });
+
+        startTimer();
+    }
+
+    function startTimer() {
+        timer = setInterval(() => {
+            timeLeft--;
+            let h = Math.floor(timeLeft / 3600);
+            let m = Math.floor((timeLeft % 3600) / 60);
+            let s = timeLeft % 60;
+            document.getElementById('time').textContent = 
+                `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                submitQuiz();
+            }
+        }, 1000);
+    }
+
+    function checkAttempted() {
+        questions.forEach((q, i) => {
+            const selected = document.querySelector(`input[name="q${i}"]:checked`);
+            if (selected) {
+                showFeedback(i, selected.value == q.a, q);
+            }
+        });
+    }
+
+    function showFeedback(i, isCorrect, qData) {
+        const feedback = document.getElementById(`feedback-${i}`);
+        const block = document.getElementById(`qblock-${i}`);
+        feedback.style.display = 'block';
+        
+        if (isCorrect) {
+            block.className = 'question-block correct';
+            feedback.innerHTML = `<strong>Correct!</strong><br><span class="rationale">${qData.r}</span>`;
+            feedback.style.color = 'green';
+        } else {
+            block.className = 'question-block incorrect';
+            feedback.innerHTML = `<strong>Incorrect.</strong> Correct Answer: ${String.fromCharCode(65 + qData.a)}<br><span class="rationale">${qData.r}</span>`;
+            feedback.style.color = 'red';
+        }
+    }
+
+    function submitQuiz() {
+        clearInterval(timer);
+        let score = 0;
+        questions.forEach((q, i) => {
+            const selected = document.querySelector(`input[name="q${i}"]:checked`);
+            const isCorrect = selected && selected.value == q.a;
+            if (isCorrect) score++;
+            showFeedback(i, isCorrect, q);
+        });
+
+        document.getElementById('quizForm').style.display = 'none';
+        const results = document.getElementById('results');
+        results.style.display = 'block';
+        document.getElementById('score-text').textContent = `Your Final Score: ${score} / ${questions.length} (${Math.round(score/questions.length*100)}%)`;
+        window.scrollTo(0,0);
+    }
+</script>
+
+</body>
+</html>
