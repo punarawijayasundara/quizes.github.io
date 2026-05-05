@@ -1,0 +1,589 @@
+import json
+
+# Data extraction and preparation
+raw_data = """[The 50 questions provided in the prompt]"""
+# Note: I've processed the text from the prompt to create the structured JS object below.
+
+html_content = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neurotransmission & Neurotransmitters Practice Test</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #3498db;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --bg: #f4f7f6;
+            --text: #333;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: var(--white);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+
+        #timer {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--danger);
+            position: sticky;
+            top: 10px;
+            background: var(--white);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .welcome-screen {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+            margin: 5px;
+            font-weight: 600;
+        }
+
+        .btn-start { background-color: var(--success); color: white; font-size: 1.5rem; }
+        .btn-submit { background-color: var(--primary); color: white; }
+        .btn-check { background-color: var(--accent); color: white; }
+        
+        .btn:hover { opacity: 0.9; }
+        .btn:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        .question-block {
+            margin-bottom: 40px;
+            padding: 20px;
+            border-left: 5px solid #eee;
+            background: #fafafa;
+        }
+
+        .question-text {
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .options label {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .options input { margin-right: 10px; }
+
+        .feedback {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .correct { border: 2px solid var(--success) !important; background-color: #eafaf1 !important; }
+        .incorrect { border: 2px solid var(--danger) !important; background-color: #fdedec !important; }
+
+        .rationale {
+            font-size: 0.9rem;
+            color: #555;
+            margin-top: 10px;
+            font-style: italic;
+            display: none;
+        }
+
+        #results {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            background: #eef2f3;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Neurotransmission Analysis Quiz</h1>
+        <p>BSc Nursing Undergraduate Practice Tool</p>
+    </header>
+
+    <div id="welcome" class="welcome-screen">
+        <p>This quiz contains 50 MCQs covering Neurotransmission and Neurotransmitters.</p>
+        <p><strong>Time Limit:</strong> 2 Hours</p>
+        <button class="btn btn-start" onclick="startQuiz()">Start the Quiz</button>
+    </div>
+
+    <div id="quiz-ui" class="hidden">
+        <div style="text-align: center;">
+            <div id="timer">Time Remaining: 02:00:00</div>
+        </div>
+
+        <div id="results">
+            <h2>Quiz Complete!</h2>
+            <p id="score-display"></p>
+        </div>
+
+        <form id="quiz-form">
+            <div id="questions-container"></div>
+            
+            <div style="margin-top: 30px; text-align: center; border-top: 2px solid #eee; padding-top: 20px;">
+                <button type="button" class="btn btn-check" id="check-btn" onclick="checkInterim()">Check Answers</button>
+                <button type="button" class="btn btn-submit" id="submit-btn" onclick="finalSubmit()">Submit Quiz</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        {
+            q: "A researcher introduces a radio-labeled precursor into a presynaptic neuron and observes its enzymatic transformation. The newly synthesized chemical messengers are subsequently segregated before release. Which component is involved in this storage process?",
+            options: ["a. Postsynaptic receptors", "b. Synaptic vesicles in the presynaptic neuron", "c. Mitochondria", "d. Dendritic spines"],
+            correct: "b",
+            rationale: "After neurotransmitters are synthesized from precursors within the presynaptic neuron, they are packaged into synaptic vesicles. This segregation protects them from metabolic degradation and prepares them for regulated release."
+        },
+        {
+            q: "During a nerve conduction study, an action potential successfully reaches the presynaptic knob, but exocytosis of the neurotransmitter fails to occur. Which step is impaired?",
+            options: ["a. Breakdown of ACh", "b. Entry of calcium ions into the axon terminal", "c. Reuptake of choline", "d. Opening of Na+ channels"],
+            correct: "b",
+            rationale: "The arrival of an action potential triggers the opening of voltage-gated calcium channels. The resulting influx of Ca2+ is the essential mechanical trigger that allows vesicles to fuse with the membrane and release their contents."
+        },
+        {
+            q: "An isolated cardiac muscle preparation is stimulated by the autonomic nervous system, resulting in an immediate decrease in contraction rate. Which mechanism is most likely responsible?",
+            options: ["a. Glutamate release", "b. Acetylcholine acting as an inhibitory neurotransmitter", "c. Dopamine surge", "d. Epinephrine release"],
+            correct: "b",
+            rationale: "In the parasympathetic nervous system, acetylcholine (ACh) acts on the sinoatrial node of the heart as an inhibitory messenger, slowing the heart rate."
+        },
+        {
+            q: "A patient with severe cognitive decline is found to have profound neuronal loss in areas of the brain associated with thought, learning, and memory. According to known disease associations, a deficit in which component is involved?",
+            options: ["a. Acetylcholine", "b. Serotonin", "c. GABA", "d. Histamine"],
+            correct: "a",
+            rationale: "Acetylcholine is the primary neurotransmitter linked to cognitive processing. A significant clinical hallmark of Alzheimer’s disease is the cholinergic deficit resulting from the loss of these neurons."
+        },
+        {
+            q: "A scientist applies a competitive inhibitor that completely blocks the action of acetylcholinesterase in a stimulated neuromuscular junction. Which outcome will occur?",
+            options: ["a. Acetylcholine will be depleted", "b. Acetylcholine will not be hydrolyzed in the synaptic cleft", "c. Muscle will immediately relax", "d. Reuptake will increase"],
+            correct: "b",
+            rationale: "Acetylcholinesterase is the enzyme responsible for the rapid hydrolysis (breakdown) of ACh. Inhibiting this enzyme causes ACh to remain in the cleft, leading to prolonged stimulation of the muscle."
+        },
+        {
+            q: "A pharmacological agent prevents the reuptake of a specific precursor molecule back into the presynaptic domain, leading to the rapid depletion of a neurotransmitter responsible for stimulating gastrointestinal muscles. Which component is involved?",
+            options: ["a. Tyrosine", "b. Tryptophan", "c. Choline", "d. Glutamate"],
+            correct: "c",
+            rationale: "Once ACh is broken down, choline is recycled back into the presynaptic neuron via high-affinity transporters to synthesize new ACh. Blocking this reuptake depletes the stores of the neurotransmitter."
+        },
+        {
+            q: "A neurotoxin binds to postsynaptic receptors at a cholinergic synapse, specifically preventing the associated ion channels from opening despite the presence of the neurotransmitter. Which step is impaired?",
+            options: ["a. Synthesis of ACh", "b. Inflow of Na and K ions and subsequent depolarization", "c. Release of Calcium", "d. Enzyme degradation"],
+            correct: "b",
+            rationale: "At nicotinic cholinergic receptors, the binding of ACh normally opens channels that allow Sodium (Na+) to enter and Potassium (K+) to exit, causing the depolarization necessary to fire an action potential."
+        },
+        {
+            q: "An elderly patient presents with resting tremors, bradykinesia, and muscular rigidity. Neurological assessment reveals the degeneration of specific regulatory motor pathways. Which mechanism is most likely responsible?",
+            options: ["a. Too much Serotonin", "b. Having too little dopamine", "c. Excess Glutamate", "d. Lack of GABA"],
+            correct: "b",
+            rationale: "Parkinson’s disease is characterized by the death of dopaminergic neurons in the substantia nigra. A lack of dopamine leads to the classic motor symptoms of tremors and rigidity."
+        },
+        {
+            q: "A psychiatric patient experiences severe auditory hallucinations and delusions, and laboratory tests reveal an overabundance of a neurotransmitter synthesized in three steps from an amino acid. Which component is involved?",
+            options: ["a. Dopamine synthesized from tyrosine", "b. Serotonin from tryptophan", "c. Acetylcholine from choline", "d. GABA from glutamate"],
+            correct: "a",
+            rationale: "The 'Dopamine Hypothesis' suggests that overactivity or an overabundance of dopamine (synthesized from tyrosine) in certain brain pathways is responsible for the positive symptoms of schizophrenia, such as hallucinations."
+        },
+        {
+            q: "An experimental compound blocks the specific enzyme responsible for converting dopamine into its direct downstream product inside synaptic vesicles. The synthesis of which neurotransmitter is impaired?",
+            options: ["a. Epinephrine", "b. Norepinephrine", "c. Serotonin", "d. Histamine"],
+            correct: "b",
+            rationale: "Within synaptic vesicles, the enzyme dopamine beta-hydroxylase converts dopamine into norepinephrine. If this step is blocked, norepinephrine levels will fall."
+        },
+        {
+            q: "A subject undergoes a stressful laboratory task, experiencing a sudden surge in heart rate, blood pressure, and concentration to form memories of the event. Which neurotransmitter is primarily bringing the nervous system into this 'high alert' state?",
+            options: ["a. GABA", "b. Norepinephrine", "c. Adenosine", "d. Endorphins"],
+            correct: "b",
+            rationale: "Norepinephrine functions as both a hormone and a neurotransmitter to mobilize the brain and body for action, increasing arousal and alertness during stress."
+        },
+        {
+            q: "A cell culture of presynaptic neurons is genetically modified to lack the amino acid tyrosine. Which outcome will occur?",
+            options: ["a. Failure to produce Serotonin", "b. Failure to synthesize dopamine and norepinephrine", "c. Increase in Acetylcholine", "d. Excess GABA production"],
+            correct: "b",
+            rationale: "Tyrosine is the starting amino acid for the catecholamine synthesis pathway. Without it, the neuron cannot produce dopamine, norepinephrine, or epinephrine."
+        },
+        {
+            q: "A patient presents with acute ischemic stroke symptoms, leading to the massive, uncontrolled release of the brain's most common excitatory neurotransmitter. Which component is accumulating in the synapses?",
+            options: ["a. Glutamate", "b. GABA", "c. Glycine", "d. Dopamine"],
+            correct: "a",
+            rationale: "Glutamate is the main excitatory neurotransmitter. During a stroke, excessive glutamate release leads to 'excitotoxicity,' which overstimulates and eventually kills neurons."
+        },
+        {
+            q: "A cellular assay reveals a profound metabolic defect resulting in a lack of alpha-ketoglutarate, a key intermediate of the Krebs cycle. The synthesis of which neurotransmitter is directly impaired?",
+            options: ["a. Serotonin", "b. Norepinephrine", "c. Glutamate", "d. Endorphins"],
+            correct: "c",
+            rationale: "Glutamate is synthesized through the transamination of alpha-ketoglutarate, linking cellular metabolism directly to neurotransmission."
+        },
+        {
+            q: "A child is diagnosed with epilepsy, characterized by unprovoked seizures due to the central nervous system becoming overexcited. A functional deficiency in which mechanism is most likely responsible?",
+            options: ["a. Excess Glutamate", "b. The inhibitory action of GABA", "c. Too much Dopamine", "d. Lack of Acetylcholine"],
+            correct: "b",
+            rationale: "GABA is the primary inhibitory neurotransmitter. Seizures occur when there is an imbalance between excitation (glutamate) and inhibition (GABA); a deficit in GABA allows for uncontrolled electrical activity."
+        },
+        {
+            q: "A researcher discovers a neurochemical pathway where the brain's most important inhibitory neurotransmitter is synthesized directly from an excitatory amino acid precursor. Which step is involved?",
+            options: ["a. Synthesis of GABA from glutamate", "b. Synthesis of Serotonin from Tryptophan", "c. Synthesis of Dopamine from Tyrosine", "d. Synthesis of ACh from Acetyl CoA"],
+            correct: "a",
+            rationale: "In a unique metabolic turn, the brain's main inhibitor (GABA) is synthesized from its main excitor (glutamate) via the enzyme glutamic acid decarboxylase (GAD)."
+        },
+        {
+            q: "A patient reports chronic, severe sleep disturbances, poor mood, and altered pain regulation. Dietary analysis shows a severe deficiency in the amino acid tryptophan. Which mechanism is most likely impaired?",
+            options: ["a. Synthesis of Dopamine", "b. Synthesis of serotonin in two steps", "c. Synthesis of GABA", "d. Breakdown of Histamine"],
+            correct: "b",
+            rationale: "Serotonin (5-HT) is synthesized from the essential amino acid tryptophan. A deficiency in tryptophan directly limits the production of serotonin, impacting mood and sleep."
+        },
+        {
+            q: "A patient with clinical depression is prescribed a medication that targets a specific modulatory neurotransmitter affected by light exposure and exercise. Which component is involved?",
+            options: ["a. Glutamate", "b. Acetylcholine", "c. Serotonin", "d. Epinephrine"],
+            correct: "c",
+            rationale: "Serotonin is heavily involved in mood regulation and 'well-being.' Many antidepressants (like SSRIs) work by increasing the availability of serotonin in the synapse."
+        },
+        {
+            q: "Following heavy alcohol consumption, a patient exhibits staggering, slurred speech, and profound memory disruption resulting in a blackout. Which mechanism is most likely responsible?",
+            options: ["a. Alcohol increasing Serotonin", "b. Alcohol inhibiting glutamate receptor function", "c. Alcohol blocking GABA", "d. Alcohol depleting Tyrosine"],
+            correct: "b",
+            rationale: "While alcohol affects many systems, its inhibition of NMDA (glutamate) receptors is a primary cause of the memory impairment (blackouts) and discoordination seen in intoxication."
+        },
+        {
+            q: "An intoxicated individual appears extremely sluggish, and clinical examination reveals significantly diminished neuron activity causing a sedative effect. Which outcome occurred at the synaptic level?",
+            options: ["a. Enhanced effects of GABA", "b. Blocked Serotonin receptors", "c. Increased Glutamate release", "d. Decreased Endorphin levels"],
+            correct: "a",
+            rationale: "Alcohol is a CNS depressant because it acts as an allosteric modulator that enhances the inhibitory effects of GABA, leading to sedation."
+        },
+        {
+            q: "A subject consumes an alcoholic beverage and reports sudden feelings of excitement and leisure, which are early markers for addiction pathways. Which mechanism explains this specific physiological response?",
+            options: ["a. Alcohol lowering blood sugar", "b. Alcohol raising dopamine levels", "c. Alcohol increasing ACh", "d. Alcohol blocking Histamine"],
+            correct: "b",
+            rationale: "Almost all addictive substances, including alcohol, trigger a release of dopamine in the brain's reward system (nucleus accumbens), creating the 'pleasure' response."
+        },
+        {
+            q: "A smoker inhales a cigarette, triggering widespread activation of cholinergic neurons in many different regions throughout the brain simultaneously. Which step is involved?",
+            options: ["a. Nicotine imitating the action of acetylcholine and binding to its receptor", "b. Nicotine blocking ACh breakdown", "c. Nicotine depleting Choline", "d. Nicotine inhibiting Na+ channels"],
+            correct: "a",
+            rationale: "Nicotine is a structural analog of acetylcholine; it binds directly to nicotinic acetylcholine receptors, mimicking the natural neurotransmitter."
+        },
+        {
+            q: "A laboratory model exposes neural tissue to nicotine, resulting in a sudden burst of cholinergic receptor activity. Which outcome will most likely occur as a direct downstream effect?",
+            options: ["a. Decreased heart rate", "b. Increased release of glutamate", "c. Muscle paralysis", "d. Drowsiness"],
+            correct: "b",
+            rationale: "Activation of nicotinic receptors on presynaptic terminals often facilitates the release of glutamate, which contributes to the stimulant effects of nicotine."
+        },
+        {
+            q: "In a study on substance abuse, it is noted that the stimulation of cholinergic neurons by nicotine heavily promotes the release of a second neurotransmitter, causing feelings of reward and pleasure. Which component is involved?",
+            options: ["a. Dopamine", "b. GABA", "c. Adenosine", "d. Glycine"],
+            correct: "a",
+            rationale: "The addictive nature of nicotine stems from its ability to stimulate the cholinergic system, which in turn triggers the mesolimbic dopamine release (the reward pathway)."
+        },
+        {
+            q: "A neurologist identifies a chemical messenger that is classified as a neuromodulator because it is capable of affecting a larger number of neurons at the same time. Which component fits this description?",
+            options: ["a. Glutamate", "b. Acetylcholine", "c. Histamine", "d. Glycine"],
+            correct: "c",
+            rationale: "While some neurotransmitters act purely point-to-point, histamine acts as a neuromodulator, diffusing across larger areas to regulate sleep-wake cycles and appetite."
+        },
+        {
+            q: "A presynaptic neuron is stimulated, but specific neurotransmitter molecules that accidentally leak from their vesicles before exocytosis are rapidly neutralized. Which mechanism is responsible?",
+            options: ["a. Active reuptake", "b. Diffusion into blood", "c. Destruction by degrading enzymes", "d. Binding to autoreceptors"],
+            correct: "c",
+            rationale: "Enzymes (like MAO for catecholamines) exist within the presynaptic terminal to destroy neurotransmitters that are not safely stored in vesicles, preventing accidental signaling."
+        },
+        {
+            q: "Following exocytosis, a portion of the released neurotransmitter binds to specific receptors located back on the presynaptic membrane. Which outcome will occur?",
+            options: ["a. Stimulation of more release", "b. Inhibition of subsequent neurotransmitter release", "c. Immediate reuptake of all molecules", "d. Permanent damage to the neuron"],
+            correct: "b",
+            rationale: "Autoreceptors provide a negative feedback loop; when they detect high levels of neurotransmitter in the synapse, they signal the presynaptic neuron to stop or slow down further release."
+        },
+        {
+            q: "An athlete experiences a state of euphoria and a profound reduction in pain following an intense, prolonged workout. The release of which neurotransmitter is most likely responsible?",
+            options: ["a. Endorphins", "b. Glutamate", "c. Norepinephrine", "d. Adenosine"],
+            correct: "a",
+            rationale: "Endorphins are endogenous opioid peptides. They are released during physical stress or pain to act as natural painkillers and produce a sense of euphoria (the 'runner\'s high')."
+        },
+        {
+            q: "A drug completely inhibits the synthesis of monoamine neurotransmitters in the central nervous system. The production of which component is directly impaired?",
+            options: ["a. Glutamate", "b. GABA", "c. Norepinephrine", "d. ATP"],
+            correct: "c",
+            rationale: "The monoamines include dopamine, norepinephrine, epinephrine, serotonin, and histamine. Glutamate and GABA are amino acids, while adenosine is a purine."
+        },
+        {
+            q: "A researcher maps the efferent pathways of the autonomic nervous system and isolates an inhibitory neurotransmitter acting on cardiac tissue that also stimulates gastro-intestinal muscles. Which component is involved?",
+            options: ["a. Acetylcholine", "b. Dopamine", "c. Serotonin", "d. Epinephrine"],
+            correct: "a",
+            rationale: "ACh is the primary neurotransmitter of the parasympathetic system. It is 'inhibitory' to the heart (slowing it down) but 'excitatory' to the GI tract (promoting digestion)."
+        },
+        {
+            q: "During a physiological study of unconventional neurotransmitters, a scientist isolates a soluble gas that functions within the central nervous system. Which component is most likely involved?",
+            options: ["a. Oxygen", "b. Carbon monoxide", "c. Nitrogen", "d. Carbon dioxide"],
+            correct: "b",
+            rationale: "Along with Nitric Oxide (NO), Carbon Monoxide (CO) is considered a gasotransmitter—a soluble gas that can diffuse through membranes to signal neighboring cells."
+        },
+        {
+            q: "A neurotransmitter synthesized in four steps from tyrosine is found heavily localized within specialized presynaptic vesicles. Which component is involved?",
+            options: ["a. Norepinephrine", "b. Serotonin", "c. Acetylcholine", "d. Glutamate"],
+            correct: "a",
+            rationale: "Unlike dopamine, which is synthesized in the cytosol, the final step of norepinephrine synthesis occurs inside the synaptic vesicles."
+        },
+        {
+            q: "A patient is suffering from frequent migraines and severe attention deficit disorder (ADD). The physician suspects an imbalance in an inhibitory/modulatory neurotransmitter. Which component is most likely involved?",
+            options: ["a. Serotonin", "b. Dopamine", "c. Acetylcholine", "d. Glutamate"],
+            correct: "a",
+            rationale: "Serotonin modulates a wide range of cognitive and sensory functions. Low levels are clinically linked to migraines and contribute to the dysregulation seen in attention disorders."
+        },
+        {
+            q: "An individual experiences intense physiological stress, leading to a massive release of a neurotransmitter that strictly provides physical boosts, increased heart rate, and heightened awareness. Which mechanism is most likely responsible?",
+            options: ["a. Production of adrenaline (epinephrine)", "b. Release of Adenosine", "c. Breakdown of Dopamine", "d. Inhibiting Glutamate"],
+            correct: "a",
+            rationale: "Epinephrine (adrenaline) is the hallmark of the 'fight or flight' response, providing the rapid physical resources needed to respond to a threat."
+        },
+        {
+            q: "A pharmaceutical agent acts globally as a neuromodulator, directly influencing the effects of other chemical messengers across a wide array of neural networks simultaneously. Which component is most likely involved?",
+            options: ["a. Cannabinoids", "b. Glycine", "c. Aspartate", "d. Choline"],
+            correct: "a",
+            rationale: "Endocannabinoids act as retrograde messengers and neuromodulators, fine-tuning the release of both excitatory and inhibitory neurotransmitters across many brain regions."
+        },
+        {
+            q: "A laboratory observes an inhibitory synapse where the rapidly released chemical messenger is classified specifically as an amino acid. Which component is involved?",
+            options: ["a. Epinephrine", "b. Acetylcholine", "c. GABA", "d. ATP"],
+            correct: "c",
+            rationale: "GABA (and glycine) are the primary neurotransmitters that are chemically classified as amino acids and function as inhibitors."
+        },
+        {
+            q: "An experiment evaluates the physiological response to a purine functioning as a neurotransmitter at a central synapse. Which component is involved?",
+            options: ["a. Adenosine", "b. Glutamate", "c. Serotonin", "d. Histamine"],
+            correct: "a",
+            rationale: "Adenosine and ATP are classified as purine neurotransmitters. Adenosine generally acts as a CNS depressant (caffeine works by blocking its receptors)."
+        },
+        {
+            q: "A patient demonstrates poor attention, reduced concentration, and an inability to correctly respond to actions in the brain. A deficit in which neurotransmitter is most likely responsible?",
+            options: ["a. Noradrenaline", "b. GABA", "c. Endorphins", "d. Glycine"],
+            correct: "a",
+            rationale: "Noradrenaline (Norepinephrine) is critical for maintaining 'sustained attention' and alertness. Deficits are highly linked to concentration issues."
+        },
+        {
+            q: "A subject experiences high anxiety and a profound lack of focus, despite having normal motor control and vision. According to the specific functions of calming neurotransmitters, which outcome will occur if this specific neurotransmitter's levels are elevated?",
+            options: ["a. High levels of GABA will improve focus and calm firing nerves", "b. High levels of Glutamate will relax the brain", "c. Increased Dopamine will cause sleep", "d. Low Serotonin will stop anxiety"],
+            correct: "a",
+            rationale: "GABA acts as the brain's 'brake.' Increasing GABA activity reduces the 'background noise' of neural firing, which helps reduce anxiety and can improve focus."
+        },
+        {
+            q: "A neurobiologist isolates a peptide molecule that functions as a neurotransmitter in the human brain. Which component is most likely involved?",
+            options: ["a. Oxytocin", "b. Epinephrine", "c. ATP", "d. Choline"],
+            correct: "a",
+            rationale: "Oxytocin and endorphins are large molecules made of amino acid chains, classifying them as peptides. Epinephrine is a monoamine, and ATP is a purine."
+        },
+        {
+            q: "A patient with Alzheimer's disease is evaluated for severe memory and learning impairments. According to known disease associations, a deficit in which component is involved?",
+            options: ["a. Acetylcholine", "b. Dopamine", "c. GABA", "d. Serotonin"],
+            correct: "a",
+            rationale: "Memory formation is heavily dependent on ACh pathways in the hippocampus and cortex; these are the primary targets of degeneration in Alzheimer's."
+        },
+        {
+            q: "A synapse fails to deactivate released neurotransmitters because the active reuptake mechanism is completely blocked. Assuming no other mechanisms compensate, which outcome will occur?",
+            options: ["a. The neurotransmitter must be degraded enzymatically to be removed", "b. The synapse will permanently shut down", "c. Neurotransmitters will turn into precursors", "d. Nothing will happen"],
+            correct: "a",
+            rationale: "There are two main ways to clear the synapse: reuptake or enzymatic degradation. If reuptake is blocked, the system must rely entirely on enzymes to stop the signal."
+        },
+        {
+            q: "A nerve impulse rapidly descends a presynaptic neuron but fails to trigger exocytosis because a specific ion channel is blocked by a neurotoxin. Which step is impaired?",
+            options: ["a. Calcium entering the axon terminal", "b. Sodium entering the dendrite", "c. Potassium leaving the synapse", "d. ATP synthesis"],
+            correct: "a",
+            rationale: "Exocytosis is a calcium-dependent process. Without the Ca2+ influx, the vesicles cannot 'dock' and fuse with the presynaptic membrane."
+        },
+        {
+            q: "A researcher isolates a neurotransmitter that acts as both an excitatory and inhibitory messenger depending on the specific receptor it binds to in the body. Which component fits this unique classification?",
+            options: ["a. Norepinephrine", "b. Glutamate", "c. GABA", "d. Adenosine"],
+            correct: "a",
+            rationale: "Norepinephrine (and ACh) can have different effects depending on the receptor subtype. For example, norepinephrine constricts some blood vessels while dilating others."
+        },
+        {
+            q: "A patient with a severe neurological disorder struggles with normal brain function, including the development and creation of new nerve contacts. The physician suspects a deficiency in the brain's most common excitatory neurotransmitter. Which mechanism is impaired?",
+            options: ["a. Glutamate signaling", "b. Serotonin reuptake", "c. GABA inhibition", "d. Histamine modulation"],
+            correct: "a",
+            rationale: "Glutamate is essential for 'synaptic plasticity'—the process by which the brain creates and strengthens new neural connections (learning)."
+        },
+        {
+            q: "A chemical messenger is synthesized from precursors but fails to induce any physiological response because it cannot locate its specific target structures across the synaptic cleft. Which step is impaired?",
+            options: ["a. Binding to receptor proteins on the postsynaptic neuron", "b. Crossing the presynaptic membrane", "c. Storage in vesicles", "d. Enzymatic degradation"],
+            correct: "a",
+            rationale: "The 'target structures' are the postsynaptic receptors. If the neurotransmitter cannot bind to these proteins, no signal is transmitted to the next cell."
+        },
+        {
+            q: "A patient is treated with a drug that specifically inhibits the synthesis of neurotransmitters derived from the precursor choline. Which outcome will occur?",
+            options: ["a. Impaired activation of muscle action in the body", "b. Increased alertness", "c. Loss of pain sensation", "d. Extreme hunger"],
+            correct: "a",
+            rationale: "Choline is the precursor for ACh. Since ACh is the neurotransmitter used at every neuromuscular junction, a lack of it will result in muscle weakness or paralysis."
+        },
+        {
+            q: "A researcher maps the molecular origin of a neuromodulator that contributes to well-being, regulates the digestive system, and influences the sleep cycle. Which mechanism is responsible for its synthesis?",
+            options: ["a. Synthesis in two steps from tryptophan", "b. Synthesis in four steps from tyrosine", "c. Direct conversion from alpha-ketoglutarate", "d. Breakdown of ATP"],
+            correct: "a",
+            rationale: "Serotonin is synthesized by: (1) Hydroxylation of tryptophan, and (2) Decarboxylation to form 5-HT. This two-step pathway is distinct from others."
+        },
+        {
+            q: "A scientist applies a compound that prevents synaptic vesicles from physically fusion with the presynaptic membrane during an action potential. Which outcome will occur?",
+            options: ["a. Neurotransmitters will not be released into the synaptic cleft", "b. Neurotransmitters will be released via diffusion", "c. Reuptake will happen faster", "d. Precursors will be destroyed"],
+            correct: "a",
+            rationale: "Fusion is the final stage of exocytosis. If the vesicle cannot merge with the cell membrane, the neurotransmitter remains trapped inside the neuron."
+        },
+        {
+            q: "A laboratory evaluates the diverse effects of alcohol on the brain and notes that in addition to altering neurotransmitter levels, alcohol physically interacts with specific target sites. Which component is directly bound by alcohol?",
+            options: ["a. Glutamate receptors", "b. Tyrosine transporters", "c. Choline enzymes", "d. Endorphin vesicles"],
+            correct: "a",
+            rationale: "Alcohol is a small molecule that can directly bind to the hydrophobic pockets of several receptors, most notably the Glutamate (NMDA) and GABA-A receptors."
+        }
+    ];
+
+    let timerInterval;
+    let timeLeft = 120 * 60; // 2 hours in seconds
+
+    function startQuiz() {
+        document.getElementById('welcome').classList.add('hidden');
+        document.getElementById('quiz-ui').classList.remove('hidden');
+        renderQuestions();
+        startTimer();
+    }
+
+    function renderQuestions() {
+        const container = document.getElementById('questions-container');
+        questions.forEach((item, index) => {
+            const qDiv = document.createElement('div');
+            qDiv.className = 'question-block';
+            qDiv.id = `q-block-${index}`;
+            
+            let optionsHtml = '';
+            item.options.forEach(opt => {
+                const val = opt.split('.')[0].trim(); // Get 'a', 'b', 'c', etc.
+                optionsHtml += `
+                    <label>
+                        <input type="radio" name="q${index}" value="${val}">
+                        ${opt}
+                    </label>
+                `;
+            });
+
+            qDiv.innerHTML = `
+                <div class="question-text">${index + 1}. ${item.q}</div>
+                <div class="options">${optionsHtml}</div>
+                <div id="feedback-${index}" class="feedback"></div>
+                <div id="rationale-${index}" class="rationale">${item.rationale}</div>
+            `;
+            container.appendChild(qDiv);
+        });
+    }
+
+    function startTimer() {
+        const timerDisplay = document.getElementById('timer');
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                finalSubmit();
+            }
+            const hrs = Math.floor(timeLeft / 3600);
+            const mins = Math.floor((timeLeft % 3600) / 60);
+            const secs = timeLeft % 60;
+            timerDisplay.textContent = `Time Remaining: ${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }, 1000);
+    }
+
+    function checkInterim() {
+        questions.forEach((item, index) => {
+            const selected = document.querySelector(`input[name="q${index}"]:checked`);
+            const feedback = document.getElementById(`feedback-${index}`);
+            const rationale = document.getElementById(`rationale-${index}`);
+            const qBlock = document.getElementById(`q-block-${index}`);
+
+            if (selected) {
+                feedback.style.display = 'block';
+                rationale.style.display = 'block';
+                if (selected.value === item.correct) {
+                    feedback.textContent = "Correct!";
+                    feedback.style.color = "var(--success)";
+                    qBlock.classList.add('correct');
+                    qBlock.classList.remove('incorrect');
+                } else {
+                    feedback.innerHTML = `Incorrect. The correct answer was <strong>${item.correct}</strong>.`;
+                    feedback.style.color = "var(--danger)";
+                    qBlock.classList.add('incorrect');
+                    qBlock.classList.remove('correct');
+                }
+            }
+        });
+    }
+
+    function finalSubmit() {
+        clearInterval(timerInterval);
+        window.scrollTo(0, 0);
+        checkInterim();
+        
+        let score = 0;
+        questions.forEach((item, index) => {
+            const selected = document.querySelector(`input[name="q${index}"]:checked`);
+            if (selected && selected.value === item.correct) score++;
+        });
+
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.style.display = 'block';
+        document.getElementById('score-display').textContent = `You scored ${score} out of ${questions.length} (${(score/questions.length*100).toFixed(1)}%)`;
+        
+        // Disable all inputs
+        const inputs = document.querySelectorAll('input[type="radio"]');
+        inputs.forEach(input => input.disabled = true);
+        document.getElementById('submit-btn').disabled = true;
+        document.getElementById('check-btn').disabled = true;
+    }
+</script>
+
+</body>
+</html>
+"""
+
+# Save to file
+with open("neurotransmission_practice_test.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
