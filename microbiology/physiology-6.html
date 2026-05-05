@@ -1,0 +1,329 @@
+from air_canvas_utils import create_html_file
+
+html_content = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neurology & ANS Practice Test</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #3498db;
+            --success: #27ae60;
+            --error: #e74c3c;
+            --bg: #f4f7f6;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+        }
+
+        #timer {
+            position: sticky;
+            top: 10px;
+            background: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: inline-block;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .quiz-controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
+            font-weight: 600;
+        }
+
+        .btn-start { background: var(--accent); color: white; }
+        .btn-submit { background: var(--success); color: white; }
+        .btn-check { background: var(--secondary); color: white; }
+        
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        .question-card {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+
+        .question-text {
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .options label {
+            display: block;
+            padding: 10px;
+            margin: 5px 0;
+            background: #f9f9f9;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .options label:hover { background: #f0f0f0; }
+
+        input[type="radio"] { margin-right: 10px; }
+
+        .hidden { display: none; }
+
+        .feedback {
+            margin-top: 10px;
+            font-weight: bold;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .correct-feedback { color: var(--success); background: #e8f5e9; }
+        .incorrect-feedback { color: var(--error); background: #ffebee; }
+
+        .rationale {
+            font-size: 0.85em;
+            color: #555;
+            margin-top: 5px;
+            display: block;
+            font-style: italic;
+        }
+
+        .score-display {
+            font-size: 1.5em;
+            text-align: center;
+            margin: 20px 0;
+            font-weight: bold;
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Neurology & Autonomic Nervous System</h1>
+    
+    <div class="quiz-controls" id="start-section">
+        <button class="btn btn-start" onclick="startQuiz()">Start the Quiz</button>
+        <p>You have 2 hours to complete 50 questions.</p>
+    </div>
+
+    <div id="quiz-content" class="hidden">
+        <div style="text-align: right;">
+            <div id="timer">Time Remaining: 02:00:00</div>
+        </div>
+        
+        <form id="quiz-form">
+            <div id="questions-container"></div>
+            
+            <div class="quiz-controls">
+                <button type="button" class="btn btn-check" onclick="checkAnswers(false)">Check Answers</button>
+                <button type="button" class="btn btn-submit" onclick="checkAnswers(true)">Submit Final</button>
+            </div>
+        </form>
+        <div id="final-score" class="score-display hidden"></div>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { id: 1, q: "A subject is exposed to a sudden auditory stimulus, which activates specialized cells in the ear. Which mechanism is most likely responsible for generating the initial neural signal?", options: { a: "Direct stimulation of upper motor neurons", b: "Conversion of the energy form into recognizable action potentials", c: "Secretion of acetylcholine from adrenergic fibers", d: "Transport of neuropeptide Y across the blood-brain barrier" }, correct: "b", rationale: "Sensory receptors function by converting specific forms of energy (like sound waves) into recognizable action potentials (electrical signals) that the nervous system can process." },
+        { id: 2, q: "A neurologist asks a patient to close their eyes and attempts to assess their joint position sense by moving their toes. Which component is involved in transmitting this sensation?", options: { a: "Anterior spinothalamic tract", b: "Lateral spinothalamic tract", c: "Posterior columns", d: "Spino-cerebellar tracts" }, correct: "c", rationale: "The posterior columns (dorsal columns) of the spinal cord are the specific ascending sensory tracts responsible for transmitting fine touch, vibration, and conscious proprioception (joint position sense)." },
+        { id: 3, q: "A patient suffers a traumatic spinal cord injury resulting in a complete loss of pain and temperature perception in the left leg. Which step is impaired?", options: { a: "Transmission via the lateral spinothalamic tract", b: "Transmission via the posterior columns", c: "Transmission via the anterior spinothalamic tract", d: "Motor output from the precentral gyrus" }, correct: "a", rationale: "Pain and temperature sensations are exclusively transmitted up the spinal cord via the lateral spinothalamic tract." },
+        { id: 4, q: "During an examination, a physician taps the patient's patellar tendon, which stretches the muscle spindle and fires an action potential. Which outcome will occur immediately following the integration of this signal in the spinal cord?", options: { a: "The sensory neuron directly releases norepinephrine", b: "The somatic motor neuron triggers the quadriceps muscle to contract", c: "The hamstring muscle forcefully contracts", d: "Upper motor neurons immediately decussate in the medulla" }, correct: "b", rationale: "In a spinal stretch reflex (monosynaptic reflex arc), the sensory neuron synapses in the spinal cord and triggers the somatic motor neuron (the efferent path) to contract the effector muscle." },
+        { id: 5, q: "A patient is found to have an absent ankle jerk reflex after a heavy lifting injury. Which component is impaired?", options: { a: "Cervical 5 & 6", b: "Lumbar 3 & 4", c: "Thoracic 7 to 12", d: "Sacral 1 & 2" }, correct: "d", rationale: "The ankle jerk (Achilles reflex) is a deep tendon reflex mediated strictly by the Sacral 1 and Sacral 2 spinal segments." },
+        { id: 6, q: "A clinical test reveals that a patient lacks a normal supinator jerk reflex. Which mechanism is most likely responsible?", options: { a: "Lesion at Cervical 5 & 6", b: "Lesion at Cervical 6 & 7", c: "Damage to the primary motor cortex", d: "Blockade of the lateral corticospinal tract" }, correct: "a", rationale: "The supinator (brachioradialis) jerk reflex is integrated at the spinal segments of Cervical 5 and Cervical 6." },
+        { id: 7, q: "A male patient is evaluated for a suspected lower spinal nerve root compression and exhibits an absent cremasteric reflex. Which step is impaired?", options: { a: "Integration at Thoracic 7 to 12", b: "Integration at Lumbar 2", c: "Integration at Sacral 1 & 2", d: "Integration at Lumbar 3 & 4" }, correct: "b", rationale: "The cremasteric reflex is a superficial reflex integrated at the Lumbar 1 and Lumbar 2 spinal segments." },
+        { id: 8, q: "A stroke severely damages the precentral gyrus of a patient’s brain. Which outcome will occur?", options: { a: "Impaired control of skeletal muscle movements", b: "Loss of unconscious joint position sense", c: "Failure to produce cerebrospinal fluid", d: "Inability to regulate the parasympathetic rest and digest functions" }, correct: "a", rationale: "The primary motor cortex is located in the precentral gyrus of the frontal lobe and is the origin of voluntary control for skeletal muscle movements." },
+        { id: 9, q: "A localized ischemic event destroys the neurons descending in the dorsal lateral columns of the spinal cord. Which component is involved?", options: { a: "Anterior spinothalamic tract", b: "Lateral corticospinal tracts", c: "Ventral corticospinal tracts", d: "Corticobulbar tracts" }, correct: "b", rationale: "The lateral corticospinal tracts contain upper motor neurons that have crossed in the medulla and descend through the lateral columns." },
+        { id: 10, q: "An experimental lesion is created in the brainstem, preventing axons from crossing the midline in the medullary pyramids. Which step is impaired?", options: { a: "Formation of the lateral corticospinal tracts", b: "Formation of the ventral corticospinal tracts", c: "Secretion of neuropeptide Y", d: "Activation of anterior horn sensory neurons" }, correct: "a", rationale: "Approximately 80-90% of the axons in the pyramids cross the midline (decussate) to form the lateral corticospinal tract on the opposite side." },
+        { id: 11, q: "A patient develops a disease that selectively destroys the neurons arising from the motor cortex that specifically innervate the cranial nerve nuclei. Which component is involved?", options: { a: "Corticospinal tracts", b: "Posterior columns", c: "Corticobulbar tracts", d: "Spino-cerebellar tracts" }, correct: "c", rationale: "The corticobulbar tracts are the descending upper motor neuron pathways that terminate on the motor nuclei of cranial nerves in the brainstem." },
+        { id: 12, q: "A viral infection selectively attacks the alpha and gamma motor neurons located in the spinal cord. Which mechanism is most likely responsible for the resulting clinical signs?", options: { a: "Upper motor neuron lesion", b: "Lower motor neuron lesion", c: "Sensory receptor demyelination", d: "Astrocytic foot process failure" }, correct: "b", rationale: "Alpha and gamma motor neurons located in the anterior horn of the spinal cord are classified as lower motor neurons (LMN)." },
+        { id: 13, q: "Following a severe lower motor neuron lesion, a patient's reflex arc is completely interrupted. Which outcome will occur?", options: { a: "Flaccid paralysis with loss of muscle tone and power", b: "Spastic paralysis with hyperactive reflexes", c: "Increased muscle spindle activity", d: "Enhanced two-point discrimination" }, correct: "a", rationale: "LMN lesions interrupt the final common pathway to the muscle, resulting in flaccid paralysis and loss of reflexes." },
+        { id: 14, q: "A patient suffers a severe trauma resulting in fracture of the C4 vertebra. Which outcome will occur?", options: { a: "Partial paralysis of hands and arms", b: "Paraplegia below the chest", c: "Quadriplegia with complete paralysis below the neck", d: "Paraplegia strictly below the waist" }, correct: "c", rationale: "Damage at the C4 level typically results in quadriplegia (tetraplegia), affecting all four limbs and the trunk." },
+        { id: 15, q: "A motorcycle accident results in damage to the patient's spinal cord at the T6 vertebral level. Which component is involved?", options: { a: "Paralysis below the waist", b: "Paralysis below the chest", c: "Partial paralysis of hands and arms", d: "Complete paralysis below the neck" }, correct: "b", rationale: "Spinal cord injuries in the mid-thoracic region (T6) result in paraplegia affecting the body from the chest level." },
+        { id: 16, q: "A subject suddenly encounters a highly stressful emergency situation. Which mechanism is most likely responsible for preparing their body for 'flight or flight'?", options: { a: "Somatic nervous system activation", b: "Parasympathetic nervous system activation", c: "Sympathetic nervous system activation", d: "Enteric nervous system suppression" }, correct: "c", rationale: "The sympathetic division of the autonomic nervous system is responsible for the 'fight or flight' response." },
+        { id: 17, q: "A pharmacological agent is administered that selectively blocks the release of norepinephrine from autonomic nerve endings. Which component is impaired?", options: { a: "Cholinergic fibers", b: "Adrenergic fibers", c: "Corticobulbar tracts", d: "Sensory afferent tracts" }, correct: "b", rationale: "Adrenergic fibers are nerve fibers that release norepinephrine as their primary neurotransmitter." },
+        { id: 18, q: "During an acute sympathetic response, a patient experiences profuse sweating. Which mechanism is most likely responsible for this specific effect?", options: { a: "Adrenergic fibers secreting neuropeptide Y", b: "Cholinergic fibers secreting acetylcholine", c: "The parasympathetic nervous system stimulating skin receptors", d: "Direct upper motor neuron stimulation of sweat glands" }, correct: "b", rationale: "Sympathetic fibers innervating sweat glands are an exception; they are cholinergic and release acetylcholine." },
+        { id: 19, q: "A patient's autonomic nervous system shifts to a 'rest and digest' state following a large meal. Which outcome will occur?", options: { a: "Dilation of the pupil", b: "Relaxation of the airways", c: "Stimulation of digestion", d: "Acceleration of the heartbeat" }, correct: "c", rationale: "The parasympathetic nervous system dominates during 'rest and digest' periods, promoting activities like digestion." },
+        { id: 20, q: "During a period of intense exercise, a patient requires increased airflow to the lungs. Which step is activated?", options: { a: "Sympathetic relaxation of the airways", b: "Parasympathetic constriction of the airways", c: "Sympathetic inhibition of salivation", d: "Parasympathetic stimulation of tear production" }, correct: "a", rationale: "Sympathetic activation causes bronchodilation (relaxation of airway smooth muscle) to increase airflow." },
+        { id: 21, q: "A patient in shock requires rapid elevation of blood glucose. Which component is involved in directly stimulating glucose production and release?", options: { a: "The parasympathetic nervous system", b: "The somatic nervous system", c: "The sympathetic nervous system", d: "The primary motor cortex" }, correct: "c", rationale: "The sympathetic nervous system stimulates glycogenolysis and gluconeogenesis in the liver." },
+        { id: 22, q: "A laboratory isolated the specific nervous pathway responsible for bladder contraction and the promotion of voiding. Which mechanism is most likely responsible?", options: { a: "Sympathetic inhibition", b: "Parasympathetic stimulation", c: "Somatic voluntary override", d: "Adrenergic fiber secretion" }, correct: "b", rationale: "Parasympathetic nerves stimulate the detrusor muscle of the bladder to contract, facilitating urination." },
+        { id: 23, q: "A medication is developed that mimics the parasympathetic control of the eye. Which outcome will occur upon administration?", options: { a: "Pupil dilation", b: "Pupil constriction", c: "Inhibition of tear production", d: "Relaxation of the ciliary muscle" }, correct: "b", rationale: "Parasympathetic stimulation of the circular muscles of the iris causes the pupil to constrict (miosis)." },
+        { id: 24, q: "An individual is subjected to deep hypoxia, leading to a significant decrease in PaO2. Which outcome will occur in the cerebral circulation?", options: { a: "Vasoconstriction due to neuropeptide Y release", b: "Cerebral vasodilation", c: "Blockade of the blood-brain barrier", d: "Decreased production of cerebrospinal fluid" }, correct: "b", rationale: "Hypoxia causes cerebral blood vessels to dilate to ensure the brain receives adequate oxygen." },
+        { id: 25, q: "A patient experiences an acute increase in arterial H+ ion concentration. Which mechanism is most likely responsible for the resulting vascular response in the brain?", options: { a: "Action as a cerebral vasoconstrictor", b: "Action as a cerebral vasodilator", c: "Increased permeability of tight junctions", d: "Inhibition of vasoactive inhibitory polypeptide" }, correct: "b", rationale: "An increase in H+ ions (acidosis) acts as a local vasodilator in the cerebral circulation." },
+        { id: 26, q: "A researcher applies neuropeptide Y directly to cerebral blood vessels in an animal model. Which outcome will occur?", options: { a: "Profound vasodilation", b: "Cerebral vasoconstriction", c: "Increased glucose carrier transport", d: "Immediate breakdown of pericytes" }, correct: "b", rationale: "Neuropeptide Y is a potent vasoconstrictor in the cerebral vascular bed." },
+        { id: 27, q: "A toxic substance is injected into the bloodstream but fails to reach the brain tissue. Microscopic analysis shows it was stopped by strict tight junctions. Which component is involved?", options: { a: "Astrocyte end-feet", b: "Cerebral endothelial cells", c: "Pericytes", d: "Choroid plexus" }, correct: "b", rationale: "The BBB is primarily formed by tight junctions between the endothelial cells of cerebral capillaries." },
+        { id: 28, q: "A pharmaceutical company designs a new drug that easily and freely permeates the blood-brain barrier. Which characteristic is most likely responsible for this rapid entry?", options: { a: "It is a large, highly protein-bound molecule", b: "It has high lipid solubility", c: "It utilizes a carrier-mediated transport", d: "It contains large amounts of urea" }, correct: "b", rationale: "Small, lipid-soluble substances can cross the BBB easily by simple diffusion through cell membranes." },
+        { id: 29, q: "A patient with severe hypoglycemia requires rapid transport of glucose across the blood-brain barrier. Which step is impaired if the glucose cannot cross?", options: { a: "Free diffusion through water-lined pores", b: "Carrier-mediated transport", c: "Tight junction disassembly", d: "Lipid-soluble diffusion" }, correct: "b", rationale: "Glucose requires specific carrier proteins (GLUT1) to cross the blood-brain barrier." },
+        { id: 30, q: "A patient has high levels of circulating urea and protein-bound hormones, yet these substances do not affect brain function. Which mechanism is most likely responsible?", options: { a: "Selective prevention by the blood-brain barrier", b: "Rapid degradation by cerebral vasodilators", c: "Active export via the cerebrospinal fluid", d: "Phagocytosis by astrocyte end-feet" }, correct: "a", rationale: "The BBB excludes large molecules and protein-bound substances from entering the brain." },
+        { id: 31, q: "A lumbar puncture is performed, and the physician notes the total volume of cerebrospinal fluid in a normal healthy adult is present. Which amount represents this volume?", options: { a: "50 mL", b: "150 mL", c: "550 mL", d: "1000 mL" }, correct: "b", rationale: "The total volume of CSF in a healthy adult is approximately 150 mL." },
+        { id: 32, q: "A patient suffers a sudden blow to the head, but the brain tissue is not directly bruised against the skull bone. Which component is responsible for providing this fluid cushion?", options: { a: "Vasoactive inhibitory polypeptide", b: "Blood-brain barrier", c: "Cerebrospinal fluid", d: "Meningeal dura mater" }, correct: "c", rationale: "CSF acts as a hydraulic cushion, protecting the brain from mechanical impact." },
+        { id: 33, q: "A physical therapy model simulates the actual physical weight of the brain acting on the neck structures. Due to its surrounding fluid, which outcome will occur to its effective weight?", options: { a: "It is increased to 550g", b: "It is reduced to 50g", c: "It is perfectly neutralized to 0g", d: "It remains equal to its dry mass" }, correct: "b", rationale: "Buoyancy from CSF reduces the effective weight of the 1,400g brain to about 50g." },
+        { id: 34, q: "A blockage occurs in the flow of CSF out of the choroid plexus of the lateral ventricles. Which step is directly impaired next in the circulation pathway?", options: { a: "Flow into the subarachnoid space", b: "Flow through the interventricular foramen into the third ventricle", c: "Absorption into the dural venous sinuses", d: "Flow through the cerebral aqueduct into the fourth ventricle" }, correct: "b", rationale: "CSF flows from lateral ventricles through the interventricular foramina (of Monro) into the third ventricle." },
+        { id: 35, q: "A patient develops a blockage strictly at the arachnoid villus. Which mechanism is impaired?", options: { a: "CSF production by the choroid plexus", b: "CSF flow through the central canal of the spinal cord", c: "CSF flow from the median and lateral apertures", d: "CSF absorption into the dural venous sinuses" }, correct: "d", rationale: "Arachnoid villi are the specific structures where CSF is absorbed into the dural venous sinuses." },
+        { id: 36, q: "A patient cannot identify a tuning fork's vibration on their skin. Based on sensory tract functions, which component is involved?", options: { a: "Lateral spinothalamic tract", b: "Anterior spinothalamic tract", c: "Posterior columns", d: "Anterior spino-cerebellar tract" }, correct: "c", rationale: "Vibration and fine touch are transmitted via the posterior (dorsal) columns." },
+        { id: 37, q: "A focal spinal lesion completely severs the anterior spinothalamic tract, leaving all other ascending tracts intact. Which component is impaired?", options: { a: "Pain and temperature sensation", b: "Simple touch sensation", c: "Joint position sense", d: "Vibration sense" }, correct: "b", rationale: "The anterior spinothalamic tract is primarily responsible for crude (simple) touch and pressure." },
+        { id: 38, q: "A patient's triceps jerk reflex is absent following a severe cervical hyperextension. Which spinal segment is most likely impaired?", options: { a: "Cervical 5 & 6", b: "Cervical 6 & 7", c: "Thoracic 7 to 12", d: "Lumbar 3 & 4" }, correct: "b", rationale: "The triceps reflex is primarily mediated by the C7 and C8 (often C6-C7) spinal nerve roots." },
+        { id: 39, q: "A newborn child undergoes reflex testing, and the superficial abdominal reflex is noted to be absent. Which component is involved?", options: { a: "Cervical 5 & 6", b: "Sacral 1 & 2", c: "Thoracic 7 to 12", d: "Lumbar 2" }, correct: "c", rationale: "The superficial abdominal reflexes are integrated in thoracic segments T7 through T12." },
+        { id: 40, q: "Following a spinal trauma, a patient exhibits flaccid paralysis. A physician determines the reflex arc is completely interrupted. Which mechanism is most likely responsible?", options: { a: "Loss of muscle spindle activity due to a lower motor neuron lesion", b: "Overstimulation of upper motor neurons in the cortex", c: "Destruction of the medullary pyramids", d: "Severing of the corticobulbar tracts" }, correct: "a", rationale: "LMN lesions disrupt the reflex arc, leading to flaccidity and absence of reflexes." },
+        { id: 41, q: "A male patient reports difficulty achieving penile erection following a pelvic nerve injury. According to the autonomic pathways, which mechanism is impaired?", options: { a: "Sympathetic stimulation", b: "Parasympathetic stimulation", c: "Somatic motor cortex activation", d: "Adrenergic fiber secretion" }, correct: "b", rationale: "Penile erection is mediated by parasympathetic fibers from the sacral spinal cord (S2-S4)." },
+        { id: 42, q: "A patient is treated for an abnormally slow heartbeat using a drug that blocks specific autonomic receptors. Under normal physiology, which component is responsible for slowing the heartbeat?", options: { a: "Sympathetic nervous system", b: "Parasympathetic nervous system", c: "Somatic nervous system", d: "Corticospinal tracts" }, correct: "b", rationale: "The parasympathetic nervous system, via the vagus nerve, acts to slow the heart rate." },
+        { id: 43, q: "A researcher records action potentials from a peripheral nerve that secretes norepinephrine to accelerate a patient's heartbeat. Which outcome will occur if this nerve is heavily stimulated?", options: { a: "Pupil constriction", b: "Stimulation of digestion", c: "Inhibition of salivation", d: "Stimulation of tear production" }, correct: "c", rationale: "Sympathetic activity (norepinephrine) inhibits salivation, resulting in a dry mouth." },
+        { id: 44, q: "During a surgical procedure, the primary motor cortex in the frontal lobe is electrically stimulated. Which outcome will occur?", options: { a: "Conscious perception of visual stimuli", b: "Control of skeletal muscle movements", c: "Regulation of parasympathetic 'rest and digest' organs", d: "Perception of two-point discrimination" }, correct: "b", rationale: "The primary motor cortex is responsible for executing voluntary skeletal muscle movements." },
+        { id: 45, q: "A patient has suffered a stroke affecting the precentral gyrus, directly impacting the origin of specific descending pathways. Which mechanism is most likely responsible?", options: { a: "Damage to lower motor neurons", b: "Damage to upper motor neurons", c: "Disruption of the anterior spinothalamic tract", d: "Impairment of sensory receptors" }, correct: "b", rationale: "Neurons originating in the motor cortex that descend to the spinal cord are upper motor neurons (UMNs)." },
+        { id: 46, q: "A patient experiences intense pain from a burn, but their temperature perception remains fully intact. Based on standard sensory tracts, which component is involved in carrying the pain sensation?", options: { a: "Posterior columns", b: "Anterior spinothalamic tract", c: "Lateral spinothalamic tract", d: "Spino-cerebellar tracts" }, correct: "c", rationale: "Both pain and temperature are carried by the lateral spinothalamic tract." },
+        { id: 47, q: "An individual is involved in a severe accident that fractures the L6 vertebra as classified on their chart, causing a specific paralysis. Which outcome will occur?", options: { a: "Complete paralysis below the neck", b: "Partial paralysis of hands and arms", c: "Paraplegia below the chest", d: "Paraplegia below the waist" }, correct: "d", rationale: "Clinically, lumbar region injuries result in paraplegia affecting the lower limbs (below the waist)." },
+        { id: 48, q: "A physician traces a descending nerve impulse from the cerebral cortex that directly innervates a cranial nerve nucleus in the brainstem. Which step is involved?", options: { a: "Transmission via the lateral corticospinal tract", b: "Transmission via the corticobulbar tract", c: "Transmission via the ventral corticospinal tract", d: "Transmission via the posterior columns" }, correct: "b", rationale: "The corticobulbar tract connects the motor cortex to the motor nuclei of cranial nerves." },
+        { id: 49, q: "A patient presents with high levels of vasoactive inhibitory polypeptide (VIP) in the blood. Which mechanism is most likely responsible for its effect on cerebral circulation?", options: { a: "Cerebral vasoconstriction", b: "Cerebral vasodilation", c: "Decreased CSF production", d: "Increased BBB permeability to large proteins" }, correct: "b", rationale: "VIP is a neurotransmitter that causes vasodilation in cerebral vascular beds." },
+        { id: 50, q: "A laboratory model of the blood-brain barrier selectively modifies the glial brain cells that normally support the barrier. Which component is impaired?", options: { a: "Endothelial cell tight junctions", b: "Pericytes", c: "Astrocyte end-feet", d: "Basement membrane" }, correct: "c", rationale: "Astrocyte end-feet surround cerebral capillaries and are critical for maintaining the BBB's integrity." }
+    ];
+
+    let timer;
+    let timeLeft = 7200; // 2 hours in seconds
+
+    function startQuiz() {
+        document.getElementById('start-section').classList.add('hidden');
+        document.getElementById('quiz-content').classList.remove('hidden');
+        renderQuestions();
+        startTimer();
+    }
+
+    function renderQuestions() {
+        const container = document.getElementById('questions-container');
+        questions.forEach((q, index) => {
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            card.id = `q-card-${q.id}`;
+            
+            let optionsHtml = '';
+            for (let opt in q.options) {
+                optionsHtml += `
+                    <label>
+                        <input type="radio" name="question-${q.id}" value="${opt}">
+                        ${opt.toUpperCase()}. ${q.options[opt]}
+                    </label>
+                `;
+            }
+
+            card.innerHTML = `
+                <span class="question-text">${index + 1}. ${q.q}</span>
+                <div class="options">${optionsHtml}</div>
+                <div id="feedback-${q.id}" class="feedback hidden"></div>
+                <div id="rationale-${q.id}" class="rationale hidden">
+                    <strong>Rationale:</strong> ${q.rationale}
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function startTimer() {
+        timer = setInterval(() => {
+            timeLeft--;
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                checkAnswers(true);
+                alert("Time is up! Your answers have been submitted.");
+            }
+            updateTimerDisplay();
+        }, 1000);
+    }
+
+    function updateTimerDisplay() {
+        const hours = Math.floor(timeLeft / 3600);
+        const minutes = Math.floor((timeLeft % 3600) / 60);
+        const seconds = timeLeft % 60;
+        document.getElementById('timer').innerText = `Time Remaining: ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function checkAnswers(isFinal) {
+        let score = 0;
+        const form = document.getElementById('quiz-form');
+
+        questions.forEach(q => {
+            const selected = form.elements[`question-${q.id}`].value;
+            const feedback = document.getElementById(`feedback-${q.id}`);
+            const rationale = document.getElementById(`rationale-${q.id}`);
+
+            // Logic: Only show feedback if a question has been answered (for Check Answers) 
+            // OR if it's the final submission.
+            if (selected || isFinal) {
+                feedback.classList.remove('hidden');
+                
+                if (selected === q.correct) {
+                    feedback.innerText = "Correct!";
+                    feedback.className = "feedback correct-feedback";
+                    score++;
+                } else {
+                    feedback.innerText = `Incorrect. (Correct Answer: ${q.correct.toUpperCase()})`;
+                    feedback.className = "feedback incorrect-feedback";
+                }
+
+                // Show rationale for incorrect answers (Optional/Final)
+                if (isFinal) {
+                    rationale.classList.remove('hidden');
+                    // Disable inputs on final
+                    const inputs = document.getElementsByName(`question-${q.id}`);
+                    inputs.forEach(i => i.disabled = true);
+                }
+            } else {
+                // If "Check Answers" but question is untouched, keep it hidden
+                feedback.classList.add('hidden');
+                rationale.classList.add('hidden');
+            }
+        });
+
+        if (isFinal) {
+            clearInterval(timer);
+            const scoreDiv = document.getElementById('final-score');
+            scoreDiv.innerText = `Final Score: ${score} / ${questions.length}`;
+            scoreDiv.classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+    }
+</script>
+
+</body>
+</html>
+"""
+
+create_html_file(html_content, "neurology_practice_quiz.html")
