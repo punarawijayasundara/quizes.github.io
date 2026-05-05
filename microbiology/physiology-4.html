@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Endocrinology Practice Test</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --error: #e74c3c;
+            --bg: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 2px solid var(--secondary);
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+        }
+
+        #timer {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--error);
+        }
+
+        .quiz-section {
+            display: none;
+        }
+
+        .start-screen {
+            text-align: center;
+            padding: 50px 0;
+        }
+
+        .question-block {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            transition: 0.3s;
+        }
+
+        .question-text {
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .options label {
+            display: block;
+            margin: 10px 0;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .options label:hover {
+            background: #f0f0f0;
+        }
+
+        button {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 10px 5px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #submit-btn { background-color: var(--success); }
+        #check-btn { background-color: #f39c12; }
+
+        .rationale {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background: #eef2f7;
+            border-left: 4px solid var(--secondary);
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .correct { background-color: #d4edda !important; border: 1px solid #c3e6cb; }
+        .incorrect { background-color: #f8d7da !important; border: 1px solid #f5c6cb; }
+
+        .feedback-icon {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Endocrine System Practice Quiz</h1>
+        <div id="timer-display" style="display:none;">Time Remaining: <span id="timer">02:00:00</span></div>
+    </header>
+
+    <div id="start-screen" class="start-screen">
+        <p>This quiz contains 50 questions covering the Endocrine system. You have 2 hours to complete it once you begin.</p>
+        <button onclick="startQuiz()">Start the Quiz</button>
+    </div>
+
+    <div id="quiz-section" class="quiz-section">
+        <form id="quiz-form">
+            <div id="questions-container"></div>
+            <div style="text-align: center; margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px;">
+                <button type="button" id="check-btn" onclick="evaluateQuiz(false)">Check Answers (Mid-way)</button>
+                <button type="button" id="submit-btn" onclick="evaluateQuiz(true)">Submit Final Exam</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        { q: "A researcher isolates a hormone and observes that it readily diffuses across the lipid bilayer of a target cell membrane to bind with a cytoplasmic receptor. Which outcome is most likely?", a: "c", r: "Steroid hormones easily diffuse across the lipid bilayer of the cell membrane, bind to receptors inside the cell, and form a complex that triggers protein synthesis via mRNA transcription.", options: ["Immediate opening of ion channels in the cell membrane", "Binding of the hormone to receptors on the outer cell surface", "Synthesis of specific proteins via mRNA transcription", "Direct stimulation of the secondary capillary plexus"] },
+        { q: "A patient presents with a genetic mutation preventing the synthesis of hormones derived from the amino acid tyrosine. Which mechanism is most likely impaired?", a: "b", r: "Amine hormones, such as epinephrine and norepinephrine, are small molecules derived from the amino acid tyrosine.", options: ["Secretion of growth hormone from the anterior pituitary", "Production of epinephrine by the adrenal medulla", "Release of antidiuretic hormone from the posterior pituitary", "Synthesis of aldosterone in the adrenal cortex"] },
+        { q: "An experimental drug blocks specific receptor proteins located exclusively on the outer surface of target cell membranes. Which step is impaired?", a: "c", r: "Non-steroid hormones (proteins and amines) are unable to cross the cell membrane and instead bind to receptors on the outer surface of the target cell to trigger chemical reactions, such as activating secondary messengers.", options: ["Direct diffusion of cortisol into the nucleus", "Formation of the steroid-receptor complex", "Initiation of secondary messenger pathways by non-steroid hormones", "Transcription of DNA induced by sex hormones"] },
+        { q: "A subject is given a competitive inhibitor that blocks the opening of ion channels triggered by hormone-receptor complexes on the cell membrane. Which hormone's action is most likely inhibited?", a: "c", r: "Antidiuretic Hormone (ADH) is classified as a protein hormone, which is a non-steroid hormone. Non-steroid hormones bind to receptors on the outer cell surface and can trigger the opening of ion channels.", options: ["Thyroxine (T4)", "Aldosterone", "Antidiuretic Hormone (ADH)", "Cortisol"] },
+        { q: "A continuous monitor shows a patient's blood glucose levels rapidly rising and then falling back to a normal 90 mg/100 ml set point. Which mechanism explains this finding?", a: "b", r: "When blood glucose levels rise, negative feedback restores homeostasis by stimulating the release of insulin, which lowers blood glucose by promoting glucose storage in cells.", options: ["Positive feedback causing glycogen breakdown in the liver", "Negative feedback stimulating glucose uptake by tissue cells via insulin", "Positive feedback stimulating alpha cells in the pancreas", "Negative feedback driven by adrenal medulla secretions"] },
+        { q: "During labor, a patient's cervical stretch receptors are stimulated, leading to increasingly forceful uterine contractions. Which outcome is most likely?", a: "b", r: "In a positive feedback loop during childbirth, stretching of the cervix sends nerve impulses to the brain, which stimulates the pituitary to release oxytocin, causing the uterus to contract more vigorously.", options: ["A decrease in the initial stimulus to maintain homeostasis", "A positive feedback loop driven by oxytocin release", "A negative feedback loop mediated by prolactin", "Inhibition of the hypothalamo-hypophyseal tract"] },
+        { q: "A patient experiences sudden hemorrhage, resulting in a drop in blood pressure that is detected by baroreceptors in the aortic arch. Which mechanism explains the physiological response?", a: "b", r: "Baroreceptors detect decreased blood pressure, which stimulates the posterior pituitary to release ADH, resulting in vasoconstriction and increased water reabsorption in the kidneys.", options: ["Decreased firing of the supraoptic nuclei", "Increased release of ADH to promote vasoconstriction and water reabsorption", "Stimulation of the anterior pituitary to release ACTH", "Inhibition of renal reabsorption of sodium"] },
+        { q: "An individual consumes a highly concentrated saline solution, leading to an increase in blood osmolality detected by hypothalamic osmoreceptors. Which step is activated?", a: "a", r: "Osmoreceptors detect increased osmotic pressure (osmolality) in the blood and trigger the posterior pituitary to release ADH to reabsorb water.", options: ["Secretion of ADH from the posterior pituitary", "Release of aldosterone from the adrenal cortex", "Production of releasing hormones via the portal system", "Excretion of large volumes of dilute urine"] },
+        { q: "A vascular clamp is placed on the long portal vessels connecting the hypothalamus to the pituitary in an animal model. Which outcome is most likely?", a: "b", r: "The hypothalamus controls the anterior pituitary by producing releasing hormones that travel through the hypophyseal portal system, which includes the primary and secondary capillary plexuses connected by portal veins.", options: ["Loss of oxytocin storage in the posterior pituitary", "Prevention of releasing hormones from reaching the anterior pituitary", "Impaired transmission of nerve impulses along the infundibulum", "Immediate cessation of all adrenal medulla secretions"] },
+        { q: "An injury completely severs the hypothalamo-hypophyseal tract in a patient. Which step is impaired?", a: "a", r: "The posterior pituitary communicates with the hypothalamus via nerve cells along the hypothalamo-hypophyseal tract, where hormones produced in the hypothalamus are transported along axons and stored in vesicles.", options: ["Transport of ADH and oxytocin to the posterior pituitary", "Secretion of TSH from the anterior pituitary", "Communication between the primary and secondary capillary plexuses", "Release of trophic hormones into the systemic circulation"] },
+        { q: "A neurotoxin specifically destroys the cell bodies within the paraventricular and supraoptic nuclei of the hypothalamus. Which outcome is most likely?", a: "b", r: "Hypothalamic neurons in the paraventricular and supraoptic nuclei produce the posterior pituitary hormones oxytocin and ADH, which are transported to the posterior pituitary for storage.", options: ["Inability to produce prolactin-releasing hormone", "Failure to synthesize oxytocin and ADH", "Overproduction of growth hormone", "Blockage of the short portal vessels"] },
+        { q: "A child presents with stunted skeletal growth and decreased cell division despite normal nutritional intake. Which mechanism is impaired?", a: "b", r: "Growth Hormone (GH) is an anterior pituitary hormone that stimulates processes that promote the growth of the body.", options: ["Trophic hormone secretion from the posterior pituitary", "Anterior pituitary stimulation of processes that promote body growth", "Adrenal cortex production of androgens", "Direct hypothalamic synthesis of structural proteins"] },
+        { q: "A patient demonstrates a profoundly decreased metabolic rate, poor oxygen utilization, and reduced heat production. Which mechanism explains this finding?", a: "a", r: "Thyroxine (T4) and Triiodothyronine (T3) increase the metabolic rate, which is the rate at which cells use oxygen and organic molecules to produce energy and heat.", options: ["Lack of T3 and T4 release from thyroid follicles", "Impaired secretion of calcitonin from parafollicular cells", "Excessive suppression of the adrenal medulla", "Failure of the parathyroid gland to release PTH"] },
+        { q: "A biopsy of a patient's thyroid gland reveals selective destruction of parafollicular (C) cells. Which outcome is most likely?", a: "b", r: "Parafollicular cells, or C cells, in the thyroid gland produce calcitonin, a hormone that lowers blood calcium and phosphate levels.", options: ["Increased metabolic rate due to excess thyroxine", "Impaired ability to lower blood calcium levels", "Decreased absorption of iodine into the colloid", "Inability to synthesize triiodothyronine"] },
+        { q: "A patient is found to have abnormally high levels of blood calcium and phosphate following an injection of an unknown compound. Which mechanism is inhibited by this compound?", a: "a", r: "Calcitonin lowers blood calcium and phosphate levels by blocking their release from storage sites in the bones and increasing their excretion by the kidneys.", options: ["Calcitonin blocking calcium release from bone storage sites", "PTH increasing calcium absorption from the GIT", "Active vitamin D stimulating calcium uptake in kidneys", "Aldosterone promoting sodium retention"] },
+        { q: "A researcher observes a cell releasing a substance that travels via blood to strictly target the adrenal cortex. Which step is activated?", a: "b", r: "Adrenocorticotropin Hormone (ACTH) from the anterior pituitary stimulates hormone secretion from the adrenal cortex. The adrenal cortex secretes cortisol, which promotes the synthesis of glucose from amino acids and glycerol.", options: ["Secretion of epinephrine and norepinephrine", "Synthesis of glucose from amino acids via cortisol", "Release of releasing hormones from the hypothalamus", "Direct neural stimulation of the zona reticularis"] },
+        { q: "A patient’s urinalysis shows decreased reabsorption of sodium and excessive loss of potassium. Which mechanism explains this finding?", a: "b", r: "Aldosterone is a mineralocorticoid secreted by the adrenal cortex that causes the kidneys to reabsorb sodium and promotes the loss of potassium in the urine.", options: ["Overactivity of the zona fasciculata", "Impaired secretion of aldosterone from the adrenal cortex", "Hypersecretion of ADH from the posterior pituitary", "Blockade of parathyroid hormone receptors in the kidney"] },
+        { q: "A subject is exposed to acute physiological stress, resulting in enhanced gluconeogenesis and the release of fatty acids into the blood. Which outcome is most likely?", a: "a", r: "During stress, cortisol promotes the synthesis of glucose and the release of fatty acids into the blood from storage sites so that the fats can be used in place of glucose for energy.", options: ["The fats are used in place of glucose as a source of energy", "The amino acids are permanently stored in liver tissue", "The adrenal medulla suppresses sympathetic nervous activity", "The anterior pituitary decreases ACTH secretion"] },
+        { q: "A tumor selectively hyper-secretes the primary hormone from the zona glomerulosa of the adrenal cortex. Which outcome is most likely?", a: "b", r: "The zona glomerulosa is an outer layer of the adrenal cortex. The adrenal cortex secretes aldosterone, a mineralocorticoid that causes the kidneys to reabsorb sodium from urine.", options: ["Excessive synthesis of cortisol", "Increased retention of sodium by the kidneys", "Profound elevation in resting heart rate", "Enhanced development of secondary sexual characteristics"] },
+        { q: "An isolated adrenal gland is stimulated, and 80% of the resulting medullary secretion is analyzed. Which mechanism explains the action of this secretion?", a: "b", r: "Epinephrine makes up 80% of the secretions produced by the adrenal medulla and functions together with the sympathetic nervous system to prepare the body for the fight-or-flight response.", options: ["It acts with the parasympathetic system to store energy", "It functions with the sympathetic nervous system to prepare the body for the fight-or-flight response", "It primarily regulates the executive function of the brain", "It promotes the loss of potassium in the urine"] },
+        { q: "A patient with a neurodegenerative condition shows profound deficits in executive function, motivation, and reward pathways. Which mechanism is impaired?", a: "a", r: "Dopamine is an adrenal medulla hormone responsible for executive function, motor control, motivation, arousal, reinforcement, and reward.", options: ["Secretion of dopamine from the adrenal medulla", "Release of norepinephrine from the adrenal cortex", "Action of luteinizing hormone on the brain", "Synthesis of calcitonin by C cells"] },
+        { q: "A section of the pancreas is analyzed, and the alpha cells are found to be selectively non-functional. Which outcome is most likely during fasting?", a: "a", r: "When blood glucose falls, alpha cells in the pancreas normally release glucagon to break down liver glycogen and increase blood glucose levels.", options: ["Blood glucose falls without a compensatory release of glucagon", "The liver takes up excess glucose to store as glycogen", "Exocrine cells hypersecrete enzymes into the pancreatic duct", "Beta cells increase the release of insulin into the blood"] },
+        { q: "A patient has a genetic defect preventing the liver from storing glucose as glycogen despite elevated blood insulin levels. Which step is impaired?", a: "b", r: "Insulin normally lowers blood glucose levels by promoting glucose storage in cells, particularly as glycogen in liver cells.", options: ["Alpha cell detection of rising blood glucose", "Insulin promoting glucose storage in target liver cells", "Secretion of glucagon from the pancreas", "Action of oxytocin on liver hepatocytes"] },
+        { q: "A patient receives a synthetic drug that directly mimics the physiological actions of glucagon. Which outcome is most likely?", a: "c", r: "Glucagon increases blood glucose levels by promoting its release from storage and also increases the levels of amino acids and fats in the blood.", options: ["Decreased levels of amino acids in the blood", "Promotion of glucose storage in particular liver cells", "Increased levels of amino acids and fats in the blood", "Inhibition of adrenal medulla secretions"] },
+        { q: "A male patient exhibits normal systemic testosterone but profoundly decreased concentrations of testosterone within the seminiferous tubules. Which mechanism explains this finding?", a: "a", r: "Follicle-stimulating hormone (FSH) stimulates Sertoli cells to release androgen-binding protein (ABP), which binds to testosterone to keep it at a high concentration in the seminiferous tubule.", options: ["Impaired release of androgen-binding protein (ABP) by Sertoli cells", "Failure of Leydig cells to respond to Luteinizing Hormone", "Excessive negative feedback by inhibin on the hypothalamus", "Overproduction of Follicle-Stimulating Hormone"] },
+        { q: "An experimental compound selectively blocks the receptors for Luteinizing Hormone (LH) in the male testes. Which step is impaired?", a: "b", r: "Luteinizing Hormone (LH) directly stimulates the Leydig (interstitial) cells in the testes to release testosterone.", options: ["Secretion of GnRH from the hypothalamus", "Stimulation of Leydig (interstitial) cells to release testosterone", "Secretion of inhibin from the anterior pituitary", "Binding of ABP to Sertoli cells"] },
+        { q: "A male subject is given high doses of exogenous testosterone, which suppresses endogenous reproductive pathways. Which mechanism explains this finding?", a: "b", r: "High levels of testosterone negatively feed back to the hypothalamus and pituitary, inhibiting the further release of GnRH, FSH, and LH.", options: ["Positive feedback on the anterior pituitary to increase FSH", "Negative feedback inhibiting the further release of GnRH, FSH, and LH", "Direct stimulation of the seminiferous tubules to produce more sperm", "Enhancement of inhibin release to increase LH levels"] },
+        { q: "A synthetic analogue of inhibin is administered to a healthy male subject. Which outcome is most likely?", a: "a", r: "Inhibin negatively feeds back to the anterior pituitary, which specifically inhibits the further release of FSH.", options: ["Negative feedback inhibiting further release of FSH from the anterior pituitary", "Stimulation of the Leydig cells to release more testosterone", "Increased secretion of GnRH from the hypothalamus", "Positive feedback leading to an LH surge"] },
+        { q: "A female patient is unable to produce a sudden spike in a specific anterior pituitary hormone midway through her ovarian cycle. Which step is impaired?", a: "b", r: "During the ovarian cycle, a surge in Luteinizing Hormone (LH) from the anterior pituitary directly triggers ovulation around day 14.", options: ["Development of the corpus luteum during the luteal phase", "Ovulation triggered by the LH surge", "Initial growth of the ovarian follicle", "Menstruation during the follicular phase"] },
+        { q: "A researcher continuously monitors the body temperature of a female subject, noting a persistent elevation to 37°C starting around day 14 of her cycle. Which mechanism explains this finding?", a: "b", r: "Body temperature rises to 37°C coincident with ovulation and remains elevated throughout the luteal phase of the ovarian cycle.", options: ["The transition from the luteal phase to menses", "The physiological response coinciding with ovulation and the luteal phase", "The peak concentration of estradiol in the follicular phase", "The negative feedback of inhibin on the hypothalamus"] },
+        { q: "A pregnant patient at 12 weeks gestation experiences a sudden, complete failure of the corpus luteum before the placenta can fully compensate. Which outcome is most likely?", a: "b", r: "During pregnancy, estrogens and progesterone maintain the endometrium of the uterus, ensuring a rich blood supply for the placenta.", options: ["A sharp rise in human chorionic gonadotropin", "A drop in estrogen and progesterone compromising the endometrial blood supply", "Increased oxytocin release leading to immediate milk production", "Stimulation of prolactin for premature labor"] },
+        { q: "During pregnancy, specific hormones ensure the uterine endometrium is maintained while simultaneously acting on breast tissue. Which mechanism is responsible?", a: "a", r: "Estrogens and progesterone maintain the uterine endometrium and promote the development of breast tissue in preparation for breastfeeding, but they suppress milk production at this time.", options: ["Progesterone and estrogen promote breast tissue development but suppress milk production", "Oxytocin stimulates milk synthesis while relaxing uterine smooth muscle", "Prolactin prepares the uterine wall for childbirth while stimulating lactation", "LH maintains the corpus albicans to support fetal growth"] },
+        { q: "A postpartum woman who is exclusively and regularly breastfeeding experiences a cessation of her menstrual cycles for 25 weeks. Which mechanism explains this finding?", a: "c", r: "Postpartum women who breastfeed regularly experience amenorrhea because high prolactin levels inhibit GnRH secretion and antagonize the action of LH and FSH in the ovary.", options: ["Low prolactin levels stimulate GnRH action on the pituitary", "High oxytocin levels directly inhibit ovarian follicle growth", "High prolactin antagonizes the action of LH and FSH in the ovary", "Persistent human chorionic gonadotropin prevents ovulation"] },
+        { q: "An infant suckling at the breast initiates a neural impulse that travels along afferent pathways to the mother's brain. Which outcome is most likely?", a: "b", r: "The sucking action of a nursing baby stimulates receptors in the breasts, prompting the brain to stimulate the pituitary to release oxytocin for milk ejection.", options: ["The anterior pituitary releases oxytocin to eject milk", "The brain stimulates the pituitary to release oxytocin for milk ejection", "The hypothalamus strictly inhibits prolactin-releasing hormone", "Stretching of the cervix triggers a positive feedback loop"] },
+        { q: "A patient’s parathyroid glands are accidentally removed during a thyroidectomy. Which step is impaired?", a: "b", r: "Parathyroid hormone (PTH) normally increases blood calcium levels by increasing the amount of Ca2+ released from bone, increasing absorption from the GIT, and promoting retention by the kidney.", options: ["Deposition of calcium in bones via osteoblast activation", "Increasing the amount of Ca2+ released from bone", "Reduction of calcium uptake in the kidneys", "Excretion of excess phosphate via the GIT"] },
+        { q: "A subject is deficient in active vitamin D (1,25-dihydroxycholecalciferol) due to poor diet and lack of sunlight. Which outcome is most likely?", a: "a", r: "Active vitamin D acts directly to stimulate calcium uptake in the intestines.", options: ["Decreased calcium uptake in the intestines", "Increased deposition of calcium in bones", "Inhibition of parathyroid hormone secretion", "Overproduction of calcitonin by the thyroid gland"] },
+        { q: "An infusion of Parathyroid Hormone (PTH) is given to a patient with severe hypocalcemia. Which mechanism explains the restorative effect?", a: "a", r: "Parathyroid hormone (PTH) increases blood calcium levels by increasing its release from bone, increasing its absorption from the GIT, and promoting retention of Ca2+ by the kidney.", options: ["Promoting retention of Ca2+ by the kidney", "Blocking the release of Ca2+ from storage sites in the bone", "Decreasing absorption of Ca2+ from the intestines", "Stimulating parafollicular cells to divide"] },
+        { q: "A patient lacks the enzyme required to convert non-carbohydrate organic molecules into glucose during severe stress. Which mechanism is impaired?", a: "b", r: "Cortisol, a glucocorticoid, helps the body cope with stress by promoting the synthesis of glucose from other organic molecules, such as amino acids and glycerol.", options: ["Aldosterone-mediated gluconeogenesis", "Cortisol promotion of glucose synthesis from amino acids and glycerol", "Epinephrine breakdown of liver glycogen", "Insulin promotion of glucose storage in cells"] },
+        { q: "A subject presents with profound fluid imbalance due to an inability to retain sodium in the kidney tubules. Which mechanism is impaired?", a: "a", r: "Aldosterone is a mineralocorticoid secreted by the adrenal cortex that causes the kidneys to reabsorb sodium from urine.", options: ["Action of mineralocorticoids from the adrenal cortex", "Secretion of glucocorticoids from the adrenal medulla", "Action of antidiuretic hormone on osmoreceptors", "Synthesis of thyroxine by the thyroid follicles"] },
+        { q: "A lesion strictly within the third ventricle of the brain compresses underlying neuroendocrine structures, disrupting pathways. Which step is most likely impaired?", a: "b", r: "The hypothalamus controls the secretion of anterior pituitary hormones by producing releasing hormones and communicates with the posterior pituitary via neural tracts.", options: ["Disruption of the long portal vessels from the anterior pituitary", "Hypothalamic influence on the secretions of the pituitary gland", "Immediate cessation of calcitonin secretion from the neck", "Blockage of pancreatic enzymes entering the common bile duct"] },
+        { q: "A young male patient demonstrates a complete failure to develop facial hair and experiences poor maintenance of bone density. Which mechanism explains this finding?", a: "b", r: "Testosterone directly influences the growth of facial and body hair in the skin, and supports bone density maintenance.", options: ["Overproduction of estrogens by the adrenal medulla", "Deficient influence of testosterone on skin and bone", "Hypersecretion of GnRH from the hypothalamus", "Impaired action of prolactin on the testes"] },
+        { q: "A tissue sample from the adrenal cortex reveals severe dysfunction exclusively in the region producing sex hormones. Which outcome is most likely in a female patient?", a: "b", r: "Androgens are the main sex hormones secreted by the adrenal cortex and are usually converted to estrogen in females.", options: ["Inability to synthesize aldosterone", "Lack of androgen conversion to estrogen", "Failure to prepare the body for the fight-or-flight response", "Impaired synthesis of glucose from glycerol"] },
+        { q: "A hormone binds to its target cell and actively decreases the circulating levels of both amino acids and fats in the blood. Which mechanism is responsible?", a: "b", r: "Insulin lowers blood glucose levels and also decreases the levels of amino acids and fats in the blood.", options: ["Glucagon promoting release from storage", "Insulin promoting storage in cells", "Cortisol promoting fatty acid release", "Epinephrine acting on skeletal muscle"] },
+        { q: "A patient’s blood test reveals a complete absence of trophic hormones. Which structure is most likely impaired?", a: "a", r: "The anterior pituitary is a true endocrine gland that contains secretory cells producing hormones like TSH, FSH, LH, ACTH, GH, and PRL.", options: ["The true endocrine gland known as the anterior pituitary", "The neural tissue of the posterior pituitary", "The neurosecretory cells of the hypothalamus", "The parathyroid glands"] },
+        { q: "A researcher notes that a specific hormone is synthesized entirely in the cell bodies of neurosecretory cells before transport down an axon for storage. Which outcome is most likely upon its release?", a: "b", r: "Posterior pituitary hormones (like ADH) are produced in hypothalamic nerve cells and transported along axons to be stored in vesicles. ADH regulates body fluids by reducing the volume of urine produced by allowing the body to reabsorb water.", options: ["Stimulation of breast development and milk production", "Reduction of urine volume by allowing the body to reabsorb water", "Increased basal metabolic rate", "Secretion of hormones by the thyroid gland"] },
+        { q: "A male patient experiences impaired red blood cell production alongside diminished sex drive and cognitive deficits. Which mechanism explains this finding?", a: "a", r: "Testosterone promotes red blood cell production in the bone marrow and aids in sex drive, positive feelings, and cognition in the brain.", options: ["Lack of testosterone influence on the brain and bone marrow", "Overproduction of LH by the anterior pituitary", "Deficient estrogen conversion in the adrenal cortex", "Impaired secretion of inhibin from Sertoli cells"] },
+        { q: "A female patient fails to experience uterine contractions despite a mature fetus pressing heavily against the cervix. Which step is impaired?", a: "a", r: "Stretching of the cervix causes nerve impulses to be sent to the brain, which then stimulates the pituitary to release oxytocin to cause uterine contractions.", options: ["Transmission of nerve impulses from the cervix to the brain", "Release of prolactin from the anterior pituitary", "Negative feedback of oxytocin on the hypothalamus", "Secretion of estrogen by the corpus luteum"] },
+        { q: "A neurosecretory process specifically targets the secondary capillary plexus of the hypophyseal portal system. Which outcome is most likely?", a: "a", r: "The secondary capillary plexus in the anterior pituitary is part of the hypophyseal portal system, which delivers releasing hormones from the hypothalamus directly to the secretory cells of the adenohypophysis.", options: ["Delivery of hypothalamic releasing hormones to anterior pituitary secretory cells", "Storage of oxytocin in the posterior pituitary vesicles", "Transport of T3 and T4 into the systemic circulation", "Release of pancreatic enzymes into the duct"] },
+        { q: "A researcher isolates the colloid from thyroid follicles and removes its primary constituent. Which outcome is most likely?", a: "a", r: "Thyroid follicles store a substance called colloid, which contains thyroglobulin, the precursor used by follicular cells to produce the thyroid hormones T3 and T4.", options: ["Impaired storage and biosynthesis of thyroxine and triiodothyronine", "Immediate release of active vitamin D", "Inability of C cells to produce calcitonin", "Uncontrolled uptake of calcium by the kidneys"] },
+        { q: "A patient exhibits a failure of the initial breakdown of liver glycogen during a period of acute fasting. Which step is impaired?", a: "a", r: "When blood glucose falls during fasting, the stimulus prompts alpha cells in the pancreas to release glucagon, which instructs the liver to break down glycogen and release glucose.", options: ["Glucagon release from the alpha cells of the pancreas", "Insulin release from the beta cells of the pancreas", "Cortisol secretion from the adrenal cortex", "Epinephrine secretion from the adrenal medulla"] }
+    ];
+
+    let timerInterval;
+
+    function startQuiz() {
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('quiz-section').style.display = 'block';
+        document.getElementById('timer-display').style.display = 'block';
+        loadQuestions();
+        startTimer(120); // 120 minutes
+    }
+
+    function startTimer(minutes) {
+        let seconds = minutes * 60;
+        timerInterval = setInterval(() => {
+            let h = Math.floor(seconds / 3600);
+            let m = Math.floor((seconds % 3600) / 60);
+            let s = seconds % 60;
+            document.getElementById('timer').textContent = 
+                `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            if (--seconds < 0) {
+                clearInterval(timerInterval);
+                evaluateQuiz(true);
+                alert("Time is up!");
+            }
+        }, 1000);
+    }
+
+    function loadQuestions() {
+        const container = document.getElementById('questions-container');
+        quizData.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'question-block';
+            div.id = `q-block-${index}`;
+            div.innerHTML = `
+                <div class="question-text">${index + 1}. ${item.q}</div>
+                <div class="options">
+                    ${item.options.map((opt, i) => {
+                        const char = String.fromCharCode(97 + i);
+                        return `
+                        <label id="label-${index}-${char}">
+                            <input type="radio" name="q${index}" value="${char}"> ${char}) ${opt}
+                        </label>`;
+                    }).join('')}
+                </div>
+                <div id="rationale-${index}" class="rationale">
+                    <strong>Rationale:</strong> ${item.r}
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function evaluateQuiz(isFinal) {
+        let score = 0;
+        quizData.forEach((item, index) => {
+            const selected = document.querySelector(`input[name="q${index}"]:checked`);
+            const block = document.getElementById(`q-block-${index}`);
+            const rationale = document.getElementById(`rationale-${index}`);
+            
+            // Clean up previous checks
+            block.classList.remove('correct', 'incorrect');
+            rationale.style.display = 'none';
+
+            if (selected) {
+                if (selected.value === item.a) {
+                    block.classList.add('correct');
+                    score++;
+                } else {
+                    block.classList.add('incorrect');
+                }
+                rationale.style.display = 'block';
+            } else if (isFinal) {
+                block.classList.add('incorrect');
+                rationale.style.display = 'block';
+            }
+        });
+
+        if (isFinal) {
+            clearInterval(timerInterval);
+            window.scrollTo(0,0);
+            alert(`Quiz Complete! Your score: ${score} / ${quizData.length}`);
+        }
+    }
+</script>
+</body>
+</html>
